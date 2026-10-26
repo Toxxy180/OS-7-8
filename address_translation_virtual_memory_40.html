@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Address Translation & Virtual Memory - สรุปครบทุกหน้า & ข้อสอบ 40 ข้อ</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+/* Custom Styling for Address Translation & Virtual Memory Study Portal */
+:root {
+  --bg-main: #0f172a;
+  --bg-card: #1e293b;
+  --bg-card-hover: #26354d;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent-indigo: #6366f1;
+  --accent-cyan: #06b6d4;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+  --border-color: #334155;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Noto Sans Thai', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  margin: 0;
+  padding: 0;
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+.tab-btn {
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn.active {
+  color: #38bdf8;
+  border-bottom-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.slide-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.slide-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  border-color: #475569;
+}
+
+.badge-page {
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  color: white;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.badge-ch8 {
+  background: linear-gradient(135deg, #059669, #0284c7);
+}
+
+.diagram-box {
+  background: #090d16;
+  border: 1px dashed #334155;
+  border-radius: 0.5rem;
+  padding: 0.85rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  overflow-x: auto;
+}
+
+.option-btn {
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #e2e8f0;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.option-btn:hover:not(:disabled) {
+  background: #1e293b;
+  border-color: #6366f1;
+}
+.option-btn.correct {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: #10b981;
+  color: #6ee7b7;
+}
+.option-btn.wrong {
+  background: rgba(244, 63, 94, 0.18);
+  border-color: #f43f5e;
+  color: #fda4af;
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="sticky top-0 z-30 bg-slate-950/90 backdrop-blur border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center font-bold text-slate-950 text-lg shadow-lg">
+          OS
+        </div>
+        <div>
+          <h1 class="text-lg md:text-xl font-extrabold text-white leading-tight">
+            Address Translation &amp; Virtual Memory
+          </h1>
+          <p class="text-xs text-slate-400">
+            สรุปเจาะลึกครบทุกหน้า (บทที่ 7: 36 หน้า &amp; บทที่ 8: 27 หน้า) • ความเชื่อมโยง • จำลองภาพ Interactive • ข้อสอบ 40 ข้อพร้อมเฉลย
+          </p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex flex-wrap items-center gap-1 text-xs md:text-sm font-semibold">
+        <button type="button" data-tab="overview" onclick="switchTab('overview')" class="tab-btn active px-3 py-2 rounded-t-lg text-slate-300 hover:text-white">
+          🔗 ภาพรวม &amp; ความเชื่อมโยง
+        </button>
+        <button type="button" data-tab="ch7" onclick="switchTab('ch7')" class="tab-btn px-3 py-2 rounded-t-lg text-slate-300 hover:text-white">
+          📘 บทที่ 7 (ครบ 36 หน้า)
+        </button>
+        <button type="button" data-tab="ch8" onclick="switchTab('ch8')" class="tab-btn px-3 py-2 rounded-t-lg text-slate-300 hover:text-white">
+          📗 บทที่ 8 (ครบ 27 หน้า)
+        </button>
+        <button type="button" data-tab="simulator" onclick="switchTab('simulator')" class="tab-btn px-3 py-2 rounded-t-lg text-slate-300 hover:text-white">
+          🎛️ จำลองให้เห็นภาพ (Simulators)
+        </button>
+        <button type="button" data-tab="quiz" onclick="switchTab('quiz')" class="tab-btn px-3 py-2 rounded-t-lg text-slate-300 hover:text-white">
+          📝 คำถาม 40 ข้อ + เฉลย
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- SECTION 1: OVERVIEW & CONNECTION -->
+    <section id="sec-overview" class="tab-section space-y-8">
+      <!-- Hero Banner -->
+      <div class="rounded-2xl bg-gradient-to-r from-indigo-950 via-slate-900 to-cyan-950 border border-indigo-800/60 p-6 md:p-8 shadow-xl">
+        <div class="max-w-4xl">
+          <span class="inline-block text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 mb-3">
+            The Big Picture • ภาพรวมและการเชื่อมโยงเนื้อหา
+          </span>
+          <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-3">
+            บทที่ 7 (Address Translation) และ บทที่ 8 (Virtual Memory) เกี่ยวข้องกันอย่างไร?
+          </h2>
+          <p class="text-slate-300 text-sm md:text-base leading-relaxed mb-5">
+            ทั้งสองบทนี้คือ <strong>"เหรียญสองด้านของระบบจัดการหน่วยความจำในระบบปฏิบัติการ (OS Memory Management)"</strong> โดย
+            <strong class="text-indigo-300">บทที่ 7 (Address Translation)</strong> สร้าง <em>"กลไกฮาร์ดแวร์และโครงสร้างตารางในการแปลที่อยู่และดักจับสิทธิ์ (MMU, Page Table, TLB, Trap)"</em>
+            ส่วน <strong class="text-emerald-300">บทที่ 8 (Virtual Memory)</strong> นำกลไกนั้นมาใช้สร้าง <em>"ภาพลวงตาว่าคอมพิวเตอร์มี RAM ขนาดเกือบอนันต์"</em> โดยใช้ Physical RAM เป็น <strong>Cache</strong> ให้กับ <strong>Disk</strong> ผ่านกระบวนการ Demand Paging และอัลกอริทึมการเลือกหน้าที่จะแทนที่ (FIFO, MIN, LRU, Clock)
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <button type="button" onclick="switchTab('ch7')" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition">
+              ดูสรุปบทที่ 7 ทีละหน้า (1–36) ➔
+            </button>
+            <button type="button" onclick="switchTab('ch8')" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition">
+              ดูสรุปบทที่ 8 ทีละหน้า (1–27) ➔
+            </button>
+            <button type="button" onclick="switchTab('simulator')" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-sm transition">
+              ทดลองเล่น Interactive Simulator ➔
+            </button>
+            <button type="button" onclick="switchTab('quiz')" class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm transition">
+              ทำข้อสอบ 40 ข้อพร้อมเฉลย ➔
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visual Analogy -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <h3 class="text-xl font-bold text-white mb-2">🎨 อธิบายให้เห็นภาพ: เปรียบเทียบระบบหน่วยความจำเหมือน "ห้องสมุดอัจฉริยะและโต๊ะอ่านหนังสือ"</h3>
+        <p class="text-sm text-slate-400 mb-5">
+          เพื่อให้เข้าใจเนื้อหาทั้ง 63 หน้าของทั้ง 2 บทได้ทันที ลองนึกภาพตามสถานการณ์ในชีวิตจริงต่อไปนี้:
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <div class="text-indigo-400 font-bold text-sm mb-1">1. Virtual vs Physical Address</div>
+            <div class="text-white font-semibold mb-1">📖 เลขหน้าในสารบัญ vs ชั้นวางจริง</div>
+            <p class="text-xs text-slate-300">
+              นักศึกษา (CPU) เรียกหาหนังสือด้วย <strong>"รหัสประจำตัวของตัวเองที่เรียง 0, 1, 2..." (Virtual Address)</strong> แต่บรรณารักษ์ฮาร์ดแวร์ (MMU) จะเป็นคนแปลรหัสนั้นไปหาว่าหนังสือวางอยู่ที่ <strong>"ชั้นไหนช่องไหนในห้องสมุด" (Physical Address)</strong>
+            </p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <div class="text-indigo-400 font-bold text-sm mb-1">2. Base &amp; Bounds vs Segmentation</div>
+            <div class="text-white font-semibold mb-1">📦 เช่าเหมาล็อกเดียว vs แยกโซนวิชา</div>
+            <p class="text-xs text-slate-300">
+              <strong>Base &amp; Bounds</strong> คือบังคับให้วางของทุกอย่างรวมกันในล็อกเดียว (ขยายไม่ได้ แชร์กับเพื่อนไม่ได้) ส่วน <strong>Segmentation</strong> คือแยกเป็นโซนตำราเรียน (Code), โซนสมุดจด (Data), โซนกระดาษทด (Heap/Stack) แยกวางคนละชั้นได้และแชร์ตำราให้เพื่อนอ่านร่วมกันได้ แต่เกิดช่องว่างฟันหลอ (External Fragmentation)
+            </p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <div class="text-indigo-400 font-bold text-sm mb-1">3. Paging &amp; Multilevel Paging</div>
+            <div class="text-white font-semibold mb-1">📄 แฟ้มเอกสารขนาด A4 เท่ากันเป๊ะ</div>
+            <p class="text-xs text-slate-300">
+              <strong>Paging</strong> หั่นเอกสารทุกแผ่นให้มีขนาดเท่ากัน (Page) และทำช่องเก็บขนาดเท่ากันเป๊ะ (Frame) เสียบช่องไหนก็ได้ที่ว่าง! ส่วน <strong>Multilevel Paging</strong> คือการทำ "สารบัญของสารบัญ" เพื่อไม่ต้องพิมพ์หน้าสารบัญเปล่าๆ มารอสำหรับหน้าที่ยังไม่ได้เขียน (Sparse Address Space)
+            </p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <div class="text-cyan-400 font-bold text-sm mb-1">4. TLB (Translation Lookaside Buffer)</div>
+            <div class="text-white font-semibold mb-1">⚡ โพสต์อิทแปะหน้าโต๊ะ</div>
+            <p class="text-xs text-slate-300">
+              เพราะการเปิดสารบัญหลายชั้น (Multilevel Page Table) ใช้เวลานาน ซีพียูจึงมี <strong>โพสต์อิทใบเล็กความเร็วสูง (TLB)</strong> จดว่าหน้าล่าสุดที่เพิ่งเปิดไปอยู่ที่ชั้นไหน ถ้าเจอในโพสต์อิท (TLB Hit) ก็พุ่งไปหยิบได้ทันทีใน 1 ns!
+            </p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <div class="text-emerald-400 font-bold text-sm mb-1">5. Demand Paging &amp; Dirty Bit (บทที่ 8)</div>
+            <div class="text-white font-semibold mb-1">🚚 โต๊ะทำงาน (RAM) vs โกดังเก็บของ (Disk)</div>
+            <p class="text-xs text-slate-300">
+              โต๊ะอ่านหนังสือ (Physical RAM) มีพื้นที่จำกัด ส่วนโกดัง (Disk) ใหญ่มากแต่เดินไปหยิบช้ากว่า 100,000 เท่า! เราจึงวางเฉพาะหน้าที่กำลังอ่านไว้บนโต๊ะ ถ้าเรียกหาหน้าที่อยู่ในโกดังจะเกิด <strong>Page Fault</strong> ให้เจ้าหน้าที่ (OS Kernel) ไปขนจากโกดังมาวางบนโต๊ะ และถ้าหน้าเก่าบนโต๊ะมีการขีดเขียนแก้ไข (<strong>Dirty Bit = Yes</strong>) ต้องนำไปอัปเดตเก็บในโกดังก่อนเอาออกจากโต๊ะ
+            </p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <div class="text-amber-400 font-bold text-sm mb-1">6. Page Replacement (FIFO, MIN, LRU)</div>
+            <div class="text-white font-semibold mb-1">🧹 เมื่อโต๊ะเต็ม จะเก็บเล่มไหนกลับโกดัง?</div>
+            <p class="text-xs text-slate-300">
+              <strong>FIFO</strong> เอาเล่มที่วางบนโต๊ะนานสุดออก (อาจเผลอเอาเล่มที่ใช้บ่อยออก และเกิด Belady's Anomaly) • <strong>MIN</strong> มีตาทิพย์รู้อนาคต เอาเล่มที่จะไม่ได้ใช้อีกนานที่สุดออก • <strong>LRU</strong> ดูอดีตแทนอนาคต โดยเอาเล่มที่ไม่ได้แตะต้องนานที่สุดออก (และใช้ <strong>Clock/Nth Chance</strong> ประมาณค่าในระบบจริง)
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- End-to-End Architecture Flow Diagram -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <h3 class="text-xl font-bold text-white mb-3">🗺️ แผนผังเชื่อมโยงการทำงานตั้งแต่ต้นจนจบ (End-to-End Flow: บทที่ 7 ➔ บทที่ 8)</h3>
+        <div class="diagram-box text-xs md:text-sm leading-relaxed">
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                           จุดเชื่อมโยงไร้รอยต่อระหว่าง บทที่ 7 และ บทที่ 8                              │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+ [CPU รันคำสั่ง Load/Store]
+        │
+        ▼ (ส่ง Virtual Address = [Virtual Page # | Offset])
+ ┌──────────────┐
+ │  1. ค้น TLB  │ ──(TLB Hit: ~1 ns)──────────────────────────────────────┐
+ └──────────────┘                                                         │
+        │ (TLB Miss)                                                      ▼
+        ▼                                                        ┌────────────────────────┐
+ ┌─────────────────────────┐                                     │ ได้เลข Physical Frame  │
+ │ 2. เดินค้น Page Table   │ (Multilevel Walk ใน RAM: ~100 ns)    │ รวมกับ Offset เข้า RAM │
+ │    (บทที่ 7 หน้า 18-30) │ ──(Valid Bit = 1)──────────────────>│ (อัปเดต Use/Dirty Bit) │
+ └─────────────────────────┘                                     └────────────────────────┘
+        │
+        │ (Valid Bit = 0 / Invalid ➔ เกิด Page Fault Exception! [จุดเชื่อมบทที่ 7 หน้า 5 & 36 สู่บทที่ 8 หน้า 9-12])
+        ▼
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ 3. Trap เข้าสู่ OS Kernel เพื่อทำ Demand Paging (บทที่ 8 หน้า 10-17)                                │
+ │    • แปลง Virtual Address เป็นตำแหน่งบน Disk (หรือส่วนของ Memory-mapped file หน้า 18-19)            │
+ │    • หา Physical Frame ว่าง ──(ถ้า RAM เต็ม ต้องสั่ง Evict หน้าเก่า!)                               │
+ │         └─> ใช้ Page Replacement Policy: FIFO / MIN / LRU / Clock (บทที่ 8 หน้า 20-27)              │
+ │         └─> ตั้ง PTE หน้าเก่าเป็น Invalid + ล้างออกจาก TLB (หน้า 13)                                │
+ │         └─> เช็ค Dirty Bit (หน้า 14-16): ถ้า Dirty = Yes ต้องสั่ง Write-back ลง Disk ก่อน           │
+ │    • สั่ง Disk อ่านหน้าใหม่เข้า Frame ผ่าน DMA (~10 ms) ➔ เสร็จแล้วตั้ง Valid = 1 ➔ Resume คำสั่งเดิม│
+ └─────────────────────────────────────────────────────────────────────────────────────────────────────┘</div>
+      </div>
+
+      <!-- Evolution Comparison Table -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 overflow-x-auto">
+        <h3 class="text-xl font-bold text-white mb-3">📊 ตารางสรุปวิวัฒนาการของเทคนิคในบทที่ 7 สู่บทที่ 8 (ทำไมต้องมีวิธีถัดไป?)</h3>
+        <table class="w-full text-left border-collapse text-xs md:text-sm">
+          <thead>
+            <tr class="bg-slate-800 text-slate-200 border-b border-slate-700">
+              <th class="p-3">เทคนิค / หัวข้อ</th>
+              <th class="p-3">อยู่ในหน้า</th>
+              <th class="p-3">หลักการทำงานสำคัญ</th>
+              <th class="p-3">จุดเด่น (Pros)</th>
+              <th class="p-3">ข้อจำกัด (Cons) ที่นำไปสู่วิธีถัดไป</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800 text-slate-300">
+            <tr>
+              <td class="p-3 font-bold text-indigo-300">1. Base and Bounds</td>
+              <td class="p-3">บทที่ 7 หน้า 6–9</td>
+              <td class="p-3">บวกค่า Base และเช็คขอบเขตกับ Bound เป็นก้อนเดียว</td>
+              <td class="p-3">ง่าย เร็วมาก ใช้ฮาร์ดแวร์น้อย ย้ายที่ใน RAM ได้</td>
+              <td class="p-3 text-rose-300">กันเขียนทับ Code ตัวเองไม่ได้, แชร์ไม่ได้, ขยาย Stack/Heap ยาก</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-indigo-300">2. Segmentation</td>
+              <td class="p-3">บทที่ 7 หน้า 10–16</td>
+              <td class="p-3">แบ่งเป็นหลาย Segment (Code, Data, Heap, Stack) มีตารางเก็บ Base/Bound/Access</td>
+              <td class="p-3">แชร์เซกเมนต์ได้, ป้องกัน Code ได้, ขยาย Stack/Heap ได้อิสระ</td>
+              <td class="p-3 text-rose-300">จัดสรรพื้นที่ขนาดไม่เท่ากันยาก, เกิด External Fragmentation</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-indigo-300">3. Paging (ชั้นเดียว)</td>
+              <td class="p-3">บทที่ 7 หน้า 17–23</td>
+              <td class="p-3">แบ่งหน่วยความจำเป็น Page และ Frame ขนาดคงที่เท่ากัน ใช้ Bitmap จองง่าย</td>
+              <td class="p-3">ไร้ปัญหา External Fragmentation, จัดสรรหน้าว่างง่ายมาก</td>
+              <td class="p-3 text-rose-300">เมื่อเจอ Sparse Address Space ตาราง Page Table จะใหญ่โตมหาศาล</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-indigo-300">4. Multilevel Translation</td>
+              <td class="p-3">บทที่ 7 หน้า 24–30</td>
+              <td class="p-3">จัดตารางเป็นต้นไม้ (Paged Seg / Multilevel Paging) สร้างเฉพาะกิ่งที่ใช้จริง</td>
+              <td class="p-3">ประหยัดพื้นที่ตารางใน Sparse Address Space, แชร์ได้ทั้งระดับ Page/Segment</td>
+              <td class="p-3 text-rose-300">ต้องเข้าถึงหน่วยความจำหลายครั้ง (2+ Lookups) ต่อการแปลงที่อยู่ 1 ครั้ง</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-cyan-300">5. TLB (Translation Cache)</td>
+              <td class="p-3">บทที่ 7 หน้า 31–36</td>
+              <td class="p-3">แคชฮาร์ดแวร์เก็บคำแปล Virtual Page ➔ Frame ล่าสุด</td>
+              <td class="p-3">ทำให้การแปลงที่อยู่หลายระดับกลับมาเร็วระดับ ~1 ns เมื่อเกิด TLB Hit</td>
+              <td class="p-3 text-amber-300">ถ้า RAM เต็มหรือต้องการรันโปรแกรมใหญ่กว่า RAM ต้องพึ่งบทที่ 8!</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-emerald-300">6. Demand Paging &amp; MMap</td>
+              <td class="p-3">บทที่ 8 หน้า 1–19</td>
+              <td class="p-3">ใช้ RAM เป็นแคชของ Disk ดึงหน้าเมื่อเกิด Page Fault (13 ขั้นตอน) + Dirty/Use Bit</td>
+              <td class="p-3">ให้ภาพลวงตาหน่วยความจำขนาดเกือบอนันต์, Zero-copy File I/O</td>
+              <td class="p-3 text-amber-300">เมื่อ RAM เต็ม ต้องมีนโยบายเลือกหน้าที่จะไล่ที่ (Evict) ที่ฉลาด</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-emerald-300">7. Page Replacement</td>
+              <td class="p-3">บทที่ 8 หน้า 20–27</td>
+              <td class="p-3">เปรียบเทียบ FIFO, MIN (Optimal), LRU, LFU และ Clock/Nth Chance</td>
+              <td class="p-3">MIN ดีสุดในทฤษฎี, LRU ประมาณค่า MIN ได้ดีเมื่อมี Locality, Clock ใช้จริงใน OS</td>
+              <td class="p-3 text-slate-400">FIFO เกิด Belady's Anomaly ได้; Sequential scan ใหญ่กว่าแคชทำให้ FIFO/LRU พัง</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 2: CHAPTER 7 ALL 36 PAGES -->
+    <section id="sec-ch7" class="tab-section hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-2xl font-extrabold text-white">📘 สรุปละเอียดรายหน้า: บทที่ 7 Address Translation (ครบทั้ง 36 หน้า)</h2>
+            <p class="text-sm text-slate-400">อ้างอิงจากไฟล์ <code>07-address_v4.pdf</code> ครบถ้วนทุกสไลด์ พร้อมแผนภาพจำลองและจุดเน้นออกสอบ</p>
+          </div>
+          <div id="ch7-count" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-950 text-indigo-300 border border-indigo-800 self-start">
+            แสดง 36 จาก 36 หน้า
+          </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-3">
+          <input id="ch7-search" type="text" placeholder="🔍 ค้นหาเลขหน้า หรือคำสำคัญ เช่น Segmentation, TLB, 0x4000, หน้า 13..."
+            class="w-full md:w-80 px-3.5 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500">
+          <div class="flex flex-wrap gap-1.5 text-xs">
+            <button type="button" data-filter="all" class="ch7-filter-btn bg-indigo-600 text-white px-3 py-1.5 rounded-lg border border-slate-700 font-semibold">ทั้งหมด (36)</button>
+            <button type="button" data-filter="intro" class="ch7-filter-btn px-3 py-1.5 rounded-lg bg-slate-950 text-slate-300 border border-slate-700 hover:border-indigo-500">แนวคิด &amp; เป้าหมาย (1–5)</button>
+            <button type="button" data-filter="basebound" class="ch7-filter-btn px-3 py-1.5 rounded-lg bg-slate-950 text-slate-300 border border-slate-700 hover:border-indigo-500">Base &amp; Bounds (6–9)</button>
+            <button type="button" data-filter="segmentation" class="ch7-filter-btn px-3 py-1.5 rounded-lg bg-slate-950 text-slate-300 border border-slate-700 hover:border-indigo-500">Segmentation (10–16)</button>
+            <button type="button" data-filter="paging" class="ch7-filter-btn px-3 py-1.5 rounded-lg bg-slate-950 text-slate-300 border border-slate-700 hover:border-indigo-500">Paging (17–23)</button>
+            <button type="button" data-filter="multilevel" class="ch7-filter-btn px-3 py-1.5 rounded-lg bg-slate-950 text-slate-300 border border-slate-700 hover:border-indigo-500">Multilevel (24–30)</button>
+            <button type="button" data-filter="tlb" class="ch7-filter-btn px-3 py-1.5 rounded-lg bg-slate-950 text-slate-300 border border-slate-700 hover:border-indigo-500">TLB &amp; ประโยชน์ (31–36)</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="ch7-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
+    </section>
+
+    <!-- SECTION 3: CHAPTER 8 ALL 27 PAGES -->
+    <section id="sec-ch8" class="tab-section hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-2xl font-extrabold text-white">📗 สรุปละเอียดรายหน้า: บทที่ 8 Virtual Memory (ครบทั้ง 27 หน้า)</h2>
+            <p class="text-sm text-slate-400">อ้างอิงจากไฟล์ <code>08-Virtual memory_v3.pdf</code> ครบทุกสไลด์ ตั้งแต่ Cache, Demand Paging 13 ขั้นตอน ไปจนถึง FIFO/LRU/MIN และ Belady's Anomaly</p>
+          </div>
+          <div id="ch8-count" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-800 self-start">
+            แสดง 27 จาก 27 หน้า
+          </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-3">
+          <input id="ch8-search" type="text" placeholder="🔍 ค้นหาเลขหน้า หรือคำสำคัญ เช่น Demand Paging, Dirty, LRU, Belady, หน้า 12..."
+            class="w-full md:w-80 px-3.5 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500">
+          <div class="flex flex-wrap gap-1.5 text-xs">
+            <button type="button" data-filter="all" class="ch8-filter-btn bg-emerald-600 text-white px-3 py-1.5 rounded-lg border border-slate-700 font-semibold">ทั้งหมด (27)</button>
+            <button type="button" data-filter="cache" class="ch8-filter-btn px-3 py-1.5 rounded-lg bg-slate-950 text-slate-300 border border-slate-700 hover:border-emerald-500">Cache &amp; Hierarchy (1–7)</button>
+            <button type="button" data-filter="demand" class="ch8-filter-btn px-3 py-1.5 rounded-lg bg-slate-950 text-slate-300 border border-slate-700 hover:border-emerald-500">Demand Paging &amp; Bits (8–17)</button>
+            <button type="button" data-filter="mmap" class="ch8-filter-btn px-3 py-1.5 rounded-lg bg-slate-950 text-slate-300 border border-slate-700 hover:border-emerald-500">Memory-Mapped Files (18–19)</button>
+            <button type="button" data-filter="replacement" class="ch8-filter-btn px-3 py-1.5 rounded-lg bg-slate-950 text-slate-300 border border-slate-700 hover:border-emerald-500">FIFO / MIN / LRU / Belady (20–27)</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="ch8-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
+    </section>
+
+    <!-- SECTION 4: INTERACTIVE VISUAL SIMULATORS -->
+    <section id="sec-simulator" class="tab-section hidden space-y-8">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <h2 class="text-2xl font-extrabold text-white mb-2">🎛️ ห้องทดลองจำลองภาพ (Interactive Visual Simulators)</h2>
+        <p class="text-sm text-slate-400">
+          ทดลองปรับค่าและกดดูผลลัพธ์จริงจากตัวอย่างในสไลด์ เพื่อให้เข้าใจกลไกการคำนวณทั้งในบทที่ 7 และบทที่ 8 อย่างเห็นภาพชัดเจน
+        </p>
+      </div>
+
+      <!-- Simulator A: Segmentation Calculator (Slide 13) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="text-lg font-bold text-indigo-300">1️⃣ จำลองการแปลงที่อยู่แบบ Segmentation (อ้างอิงบทที่ 7 หน้า 13)</h3>
+          <span class="text-xs px-2.5 py-1 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">2-bit Segment # | 12-bit Offset</span>
+        </div>
+        <p class="text-xs md:text-sm text-slate-300">
+          ตาราง Segment Table จากสไลด์หน้า 13: <strong>Code (Seg 0)</strong> start=<code>0x4000</code>, len=<code>0x700</code> |
+          <strong>Data (Seg 1)</strong> start=<code>0x0000</code>, len=<code>0x500</code> |
+          <strong>Heap (Seg 2)</strong> ไม่ได้จอง (<code>-</code>) |
+          <strong>Stack (Seg 3)</strong> start=<code>0x2000</code>, len=<code>0x1000</code>
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">เลือกหมายเลข Segment (2-bit):</label>
+            <select id="sim-seg-select" onchange="runSegSim()" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white">
+              <option value="0">Seg 0: Code (start 0x4000, len 0x700)</option>
+              <option value="1">Seg 1: Data (start 0x0000, len 0x500)</option>
+              <option value="2">Seg 2: Heap (start -, len -)</option>
+              <option value="3">Seg 3: Stack (start 0x2000, len 0x1000)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">กรอกค่า Offset (ฐาน 16 เช่น 240, 360, 108, 850):</label>
+            <input id="sim-seg-offset" type="text" value="240" oninput="runSegSim()" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm font-mono text-white">
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="document.getElementById('sim-seg-select').value='0';document.getElementById('sim-seg-offset').value='240';runSegSim();" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-indigo-700 text-xs font-semibold text-slate-200 transition">
+              ตัวอย่าง main (0x0240)
+            </button>
+            <button type="button" onclick="document.getElementById('sim-seg-select').value='0';document.getElementById('sim-seg-offset').value='360';runSegSim();" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-indigo-700 text-xs font-semibold text-slate-200 transition">
+              ตัวอย่าง strlen (0x0360)
+            </button>
+            <button type="button" onclick="document.getElementById('sim-seg-select').value='1';document.getElementById('sim-seg-offset').value='108';runSegSim();" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-indigo-700 text-xs font-semibold text-slate-200 transition">
+              ตัวแปร x (0x1108)
+            </button>
+          </div>
+        </div>
+
+        <div id="sim-seg-result"></div>
+      </div>
+
+      <!-- Simulator B: Paging Visualizer (Slide 21) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="text-lg font-bold text-cyan-300">2️⃣ จำลองการแมปหน้าแบบ Paging (อ้างอิงบทที่ 7 หน้า 21: ตัวอักษร A–L)</h3>
+          <span class="text-xs px-2.5 py-1 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">Page Table = [ 4, 3, 1 ]</span>
+        </div>
+        <p class="text-xs md:text-sm text-slate-300">
+          คลิกที่ตัวอักษร <strong>A ถึง L</strong> ในฝั่ง Process View เพื่อดูว่าฮาร์ดแวร์แยกเลข Virtual Page กับ Offset แล้วเปิดตาราง Page Table ไปยัง Physical Memory Frame อย่างไร:
+        </p>
+
+        <div class="grid grid-cols-3 md:grid-cols-12 gap-2">
+          <button type="button" onclick="runPageSim(0)" class="letter-btn p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-center font-mono font-bold">A<div class="text-[10px] text-slate-400">P0,Off0</div></button>
+          <button type="button" onclick="runPageSim(1)" class="letter-btn p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-center font-mono font-bold">B<div class="text-[10px] text-slate-400">P0,Off1</div></button>
+          <button type="button" onclick="runPageSim(2)" class="letter-btn p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-center font-mono font-bold">C<div class="text-[10px] text-slate-400">P0,Off2</div></button>
+          <button type="button" onclick="runPageSim(3)" class="letter-btn p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-center font-mono font-bold">D<div class="text-[10px] text-slate-400">P0,Off3</div></button>
+          <button type="button" onclick="runPageSim(4)" class="letter-btn p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-center font-mono font-bold">E<div class="text-[10px] text-slate-400">P1,Off0</div></button>
+          <button type="button" onclick="runPageSim(5)" class="letter-btn p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-center font-mono font-bold">F<div class="text-[10px] text-slate-400">P1,Off1</div></button>
+          <button type="button" onclick="runPageSim(6)" class="letter-btn p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-center font-mono font-bold">G<div class="text-[10px] text-slate-400">P1,Off2</div></button>
+          <button type="button" onclick="runPageSim(7)" class="letter-btn p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-center font-mono font-bold">H<div class="text-[10px] text-slate-400">P1,Off3</div></button>
+          <button type="button" onclick="runPageSim(8)" class="letter-btn p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-center font-mono font-bold">I<div class="text-[10px] text-slate-400">P2,Off0</div></button>
+          <button type="button" onclick="runPageSim(9)" class="letter-btn p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-center font-mono font-bold">J<div class="text-[10px] text-slate-400">P2,Off1</div></button>
+          <button type="button" onclick="runPageSim(10)" class="letter-btn p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-center font-mono font-bold">K<div class="text-[10px] text-slate-400">P2,Off2</div></button>
+          <button type="button" onclick="runPageSim(11)" class="letter-btn p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-center font-mono font-bold">L<div class="text-[10px] text-slate-400">P2,Off3</div></button>
+        </div>
+
+        <div id="sim-page-result"></div>
+      </div>
+
+      <!-- Simulator C: Page Replacement & Belady's Anomaly -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="text-lg font-bold text-emerald-300">3️⃣ จำลองตารางเปรียบเทียบ FIFO vs LRU vs MIN และ Belady's Anomaly (บทที่ 8 หน้า 22–26)</h3>
+          <span class="text-xs px-2.5 py-1 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">เปรียบเทียบครบทั้ง 3 อัลกอริทึมพร้อมกัน</span>
+        </div>
+        <p class="text-xs md:text-sm text-slate-300">
+          กดปุ่มเลือกชุดข้อมูลจากสไลด์บทที่ 8 ด้านล่าง หรือพิมพ์ลำดับหน้าของคุณเอง เพื่อดูตารางการแทนที่ทีละก้าวพร้อมจำนวน Hit (+) และ Miss:
+        </p>
+
+        <div class="flex flex-wrap gap-2">
+          <button type="button" onclick="setSimPreset('A B A C B D A D E D A E B A C', 4)" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold transition">
+            📌 สไลด์หน้า 25: Locality Workload (4 ช่อง)
+          </button>
+          <button type="button" onclick="setSimPreset('A B C D E A B C D E A B C D E', 4)" class="px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 text-white text-xs font-semibold transition">
+            📌 สไลด์หน้า 22 &amp; 24: Sequential Scan (4 ช่อง)
+          </button>
+          <button type="button" onclick="setSimPreset('A B C D A B E A B C D E', 3)" class="px-3 py-1.5 rounded-lg bg-rose-700 hover:bg-rose-600 text-white text-xs font-semibold transition">
+            📌 สไลด์หน้า 26: Belady's Anomaly (3 ช่อง ➔ 3 Hits)
+          </button>
+          <button type="button" onclick="setSimPreset('A B C D A B E A B C D E', 4)" class="px-3 py-1.5 rounded-lg bg-rose-800 hover:bg-rose-700 text-white text-xs font-semibold transition">
+            📌 สไลด์หน้า 26: Belady's Anomaly (4 ช่อง ➔ เหลือ 2 Hits!)
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+          <div class="md:col-span-3">
+            <label class="block text-xs text-slate-400 mb-1">ลำดับการอ้างอิงหน้า (คั่นด้วยเว้นวรรค):</label>
+            <input id="sim-ref-input" type="text" value="A B A C B D A D E D A E B A C" oninput="runReplacementSim()"
+              class="w-full px-3.5 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm font-mono text-white">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">จำนวนช่องแคช (Slots):</label>
+            <select id="sim-slot-select" onchange="runReplacementSim()" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white">
+              <option value="3">3 Slots (ช่อง)</option>
+              <option value="4" selected>4 Slots (ช่อง)</option>
+              <option value="5">5 Slots (ช่อง)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="sim-rep-output" class="space-y-4"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: 40 QUIZ QUESTIONS WITH ANSWERS -->
+    <section id="sec-quiz" class="tab-section hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-extrabold text-white">📝 คลังข้อสอบวัดความเข้าใจ 40 ข้อ พร้อมเฉลยละเอียด</h2>
+            <p class="text-sm text-slate-400">
+              ครอบคลุมเนื้อหาครบทั้งบทที่ 7 (ข้อ 1–20) และบทที่ 8 (ข้อ 21–40) สามารถคลิกเลือกคำตอบเพื่อตรวจทันที หรือกดปุ่มแสดงเฉลยทั้งหมดเพื่ออ่านทบทวน
+            </p>
+          </div>
+          <div id="quiz-score-banner" class="px-4 py-2 rounded-xl bg-indigo-950 border border-indigo-700 text-indigo-200 font-bold text-sm self-start">
+            ทำไปแล้ว 0 / 40 ข้อ | คะแนนที่ได้: 0 / 40 คะแนน
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
+          <div class="flex flex-wrap gap-2 text-xs">
+            <button type="button" data-qfilter="all" class="quiz-filter-btn bg-indigo-600 text-white px-3.5 py-2 rounded-lg border border-slate-700 font-semibold">
+              ทั้งหมด 40 ข้อ
+            </button>
+            <button type="button" data-qfilter="7" class="quiz-filter-btn px-3.5 py-2 rounded-lg bg-slate-950 text-slate-300 border border-slate-700 hover:border-indigo-500 font-semibold">
+              เฉพาะบทที่ 7: Address Translation (ข้อ 1–20)
+            </button>
+            <button type="button" data-qfilter="8" class="quiz-filter-btn px-3.5 py-2 rounded-lg bg-slate-950 text-slate-300 border border-slate-700 hover:border-emerald-500 font-semibold">
+              เฉพาะบทที่ 8: Virtual Memory (ข้อ 21–40)
+            </button>
+          </div>
+
+          <div class="flex flex-wrap gap-2 text-xs">
+            <button id="btn-toggle-answers" type="button" onclick="toggleAllQuizAnswers()" class="px-3.5 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white font-semibold transition">
+              👁️ แสดงเฉลยพร้อมคำอธิบายครบทั้ง 40 ข้อ
+            </button>
+            <button type="button" onclick="resetQuiz()" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-rose-700 text-slate-200 font-semibold transition">
+              🔄 เริ่มทำใหม่ (Reset)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="quiz-container" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
+    </section>
+
+  </main>
+
+  <footer class="max-w-7xl mx-auto px-4 py-8 mt-8 border-t border-slate-800 text-center text-xs text-slate-500">
+    สรุปบทเรียน Address Translation (36 หน้า) &amp; Virtual Memory (27 หน้า) • Interactive Local Static Website (HTML / CSS / JS) พร้อมแบบทดสอบ 40 ข้อ
+  </footer>
+
+  <script>
+// Data & Interactive Logic for Address Translation (Ch.7) & Virtual Memory (Ch.8)
+
+const ch7Slides = [
+  {
+    page: 1,
+    group: "intro",
+    title: "Address Translation (หน้าปกบทเรียน)",
+    summary: "เปิดบทเรียนเรื่องการแปลงที่อยู่หน่วยความจำ (Address Translation) ซึ่งเป็นกลไกหลักที่เชื่อมระหว่างสิ่งที่โปรแกรมมองเห็น (Virtual Address) กับตำแหน่งจริงในหน่วยความจำหลัก (Physical Memory / RAM)",
+    visual: "🖥️ [CPU / Process] ──(Virtual Address)──> 🔄 [Address Translation (MMU)] ──(Physical Address)──> 🗄️ [Physical RAM]",
+    keyPoint: "จุดเริ่มต้นของการจัดการหน่วยความจำในระบบปฏิบัติการยุคใหม่"
+  },
+  {
+    page: 2,
+    group: "intro",
+    title: "Main Points (ประเด็นสำคัญของบทที่ 7)",
+    summary: "ภาพรวมเนื้อหาทั้งบทแบ่งเป็น 3 ส่วนหลัก: 1) แนวคิดการแปลง Address (แปลง Virtual เป็น Physical อย่างไร) 2) รูปแบบการแปลงที่ยืดหยุ่น (Base & Bound, Segmentation, Paging, Multilevel translation) และ 3) การทำให้แปลงได้เร็วและมีประสิทธิภาพด้วย TLB และ Cache",
+    visual: "📌 3 เสาหลัก: [1. Concept พื้นฐาน] ➔ [2. โครงสร้างที่ยืดหยุ่น: Base&Bound / Segment / Page / Multilevel] ➔ [3. ความเร็วสูง: TLB & Cache]",
+    keyPoint: "วิวัฒนาการของการออกแบบจะแก้ข้อจำกัดของวิธีเก่าไปสู่วิธีที่ดีกว่าเสมอ"
+  },
+  {
+    page: 3,
+    group: "intro",
+    title: "Address Translation Concept (แผนภาพแนวคิดการแปลงที่อยู่)",
+    summary: "แผนภาพแสดงการทำงาน: Processor ส่ง Virtual Address เข้าสู่กล่อง Translation (MMU) หากรหัสที่อยู่นั้นถูกต้อง (Valid) จะได้ Physical Address ไปดึง Data จาก Physical Memory ส่งกลับให้ Processor แต่ถ้าไม่ถูกต้องหรือละเมิดสิทธิ์ (Invalid) จะเกิดการโยน Exception ทันที",
+    visual: "[Processor] ──Virtual Addr──> [Translation Box]\n   ├─(Invalid)─> ⚠️ Raise Exception (แจ้ง OS จัดการ)\n   └─(Valid)───> Physical Addr ──> [Physical Memory] ──Data──> [Processor]",
+    keyPoint: "ทุกๆ Memory Reference ของโปรแกรมจะต้องผ่านด่านตรวจ (Translation) เสมอ"
+  },
+  {
+    page: 4,
+    group: "intro",
+    title: "Address Translation Goals (เป้าหมาย 4 ข้อของการแปลงที่อยู่)",
+    summary: "เป้าหมายหลัก 4 ประการ: 1) Memory protection (ป้องกันไม่ให้โปรเซสก้าวก่ายกัน) 2) Memory sharing (แชร์โค้ดเช่น Shared libraries หรือใช้สื่อสาร IPC) 3) Sparse addresses (รองรับพื้นที่แอดเดรสที่เว้นว่างหลายช่วง เช่น Heap และ Stack ที่เติบโตแยกกัน) 4) Efficiency (จัดวางง่าย ค้นหาเร็วตอนรันไทม์ และตารางแปลงมีขนาดกะทัดรัด)",
+    visual: "🎯 เป้าหมาย 4 มิติ: 🛡️ Protection | 🤝 Sharing | 🧩 Sparse Address (Heap/Stack) | ⚡ Efficiency (Compact & Fast)",
+    keyPoint: "ไม่มีเทคนิคพื้นฐานเดี่ยวๆ อันไหนได้ครบทั้ง 4 ข้อ จึงต้องมีการผสมผสานเป็น Multilevel + TLB"
+  },
+  {
+    page: 5,
+    group: "intro",
+    title: "Bonus Feature (ฟีเจอร์พิเศษเมื่อดักจับการอ่าน/เขียนได้)",
+    summary: "ตั้งคำถามชวนคิดว่า ถ้า OS สามารถเข้าไปควบคุมได้ทุกครั้งที่โปรแกรมอ่านหรือเขียนหน่วยความจำบางจุด (ผ่านการตั้งค่า Invalid/Permission ให้เกิด Trap) เราจะทำอะไรเจ๋งๆ ได้บ้าง? ตัวอย่างเช่น: Copy on write (คัดลอกเมื่อมีการแก้ไขจริง), Fill on demand, Demand paging (ดึงหน้าจากดิสก์เมื่อใช้) และ Memory mapped files",
+    visual: "🪝 [Program Read/Write] ──> 💥 Trap เข้าหา OS ──> ✨ ทำฟีเจอร์พิเศษ: Copy-on-Write | Demand Paging | Memory-Mapped Files",
+    keyPoint: "หน้านี้คือสะพานเชื่อมโดยตรงไปยังบทที่ 8 (Virtual Memory หน้า 9) ที่นำกลไก Trap นี้ไปสร้างระบบหน่วยความจำเสมือน"
+  },
+  {
+    page: 6,
+    group: "basebound",
+    title: "Base and Bounds (หัวข้อวิธีที่ 1: จุดเริ่มต้นและขอบเขต)",
+    summary: "เข้าสู่เทคนิคการแปลงที่อยู่ที่เรียบง่ายที่สุด คือการใช้รีจิสเตอร์ Base (จุดเริ่มต้น) และ Bounds (ขนาดหรือขอบเขตสูงสุด) กำกับพื้นที่หน่วยความจำของแต่ละโปรเซสเป็นก้อนเดียวติดกัน (Contiguous allocation)",
+    visual: "📦 โปรเซส 1 ก้อน = จองพื้นที่ติดกันใน RAM ตั้งแต่ [Base] ไปจนถึง [Base + Bound]",
+    keyPoint: "เป็นรากฐานแรกสุดของการทำ Hardware Address Relocation และ Protection"
+  },
+  {
+    page: 7,
+    group: "basebound",
+    title: "Virtually Addressed Base and Bounds (แผนภาพวงจรการทำงาน)",
+    summary: "เปรียบเทียบมุมมองของ Processor (มองเห็น Virtual Memory ของตัวเองเริ่มตั้งแต่ 0 ถึง Bound) กับการทำงานจริงในฮาร์ดแวร์: นำ Virtual Address มาเทียบกับรีจิสเตอร์ Bound ก่อน ถ้ามากกว่าหรือเท่ากับ (>=) จะเกิด Exception ทันที แต่ถ้าน้อยกว่า จะนำ Virtual Address ไปบวก (+) กับรีจิสเตอร์ Base เพื่อได้ Physical Address",
+    visual: "Virtual Addr ──┬──> [ วงจรบวก (+) กับ Base ] ──> Physical Address = Base + Virtual Addr\n               └──> [ วงจรเปรียบเทียบ (>) กับ Bound ] ──(ถ้าเกิน)──> ⚠️ Raise Exception",
+    keyPoint: "การบวก Base และการเช็ค Bound ทำขนานกันในฮาร์ดแวร์ ทำให้ทำงานได้เร็วมาก"
+  },
+  {
+    page: 8,
+    group: "basebound",
+    title: "Question: Drawbacks of Base and Bounds (คำถามชวนคิดข้อเสีย)",
+    summary: "สไลด์คำถามกระตุ้นให้ผู้เรียนวิเคราะห์ว่า ระบบ Base and Bounds ที่ดูเรียบง่ายและเร็วมากนี้ มีข้อจำกัดหรือข้อเสียอย่างไรในการใช้งานจริง",
+    visual: "❓ ชวนคิด: ถ้าเอาทั้ง Code, Data, Heap, Stack มัดรวมเป็นกล่องเดียว จะเกิดปัญหาอะไรตามมา?",
+    keyPoint: "ปูทางสู่คำตอบในหน้า 9 และการเกิดของ Segmentation ในหน้า 10"
+  },
+  {
+    page: 9,
+    group: "basebound",
+    title: "Virtually Addressed Base and Bounds: Pros & Cons (สรุปข้อดี-ข้อเสีย)",
+    summary: "ข้อดี (Pros): ง่าย (Simple), เร็วมาก (ใช้แค่ 2 รีจิสเตอร์ + วงจรบวก + วงจรเปรียบเทียบ), ปลอดภัย (Safe), และย้ายตำแหน่งโปรเซสใน RAM ได้โดยไม่ต้องแก้โค้ดโปรแกรม ข้อเสีย (Cons): ป้องกันโปรแกรมเขียนทับโค้ดตัวเองไม่ได้, แชร์โค้ด/ข้อมูลกับโปรเซสอื่นไม่ได้ และขยายขนาด Stack/Heap ตามต้องการได้ยากเพราะถูกมัดรวมกัน",
+    visual: "✅ ข้อดี: Simple, Fast, Safe, Relocatable\n❌ ข้อเสีย: เขียนทับ Code ตัวเองได้ | แชร์ข้ามโปรเซสไม่ได้ | ขยาย Stack/Heap ลำบาก",
+    keyPoint: "ข้อเสียทั้ง 3 ข้อของ Base & Bounds คือเหตุผลที่ต้องแยกหน่วยความจำเป็นส่วนๆ ด้วย Segmentation"
+  },
+  {
+    page: 10,
+    group: "segmentation",
+    title: "Segmentation (หัวข้อวิธีที่ 2: การแบ่งส่วนตามหน้าที่)",
+    summary: "เข้าสู่เทคนิค Segmentation ซึ่งแก้ปัญหาของ Base & Bounds โดยเปลี่ยนจากการมองหน่วยความจำโปรเซสเป็นก้อนเดียว มาเป็นการแบ่งตามโครงสร้างลอจิคัลของโปรแกรม เช่น Code, Data, Heap และ Stack",
+    visual: "🧱 แยกก้อนเดียวออกเป็นหลาย Segment: [Code Segment] [Data Segment] [Heap Segment] [Stack Segment]",
+    keyPoint: "เหมือนเปลี่ยนจากการมีคู่ Base & Bound เพียงคู่เดียว มาเป็นมีหลายคู่สำหรับแต่ละส่วนของโปรแกรม"
+  },
+  {
+    page: 11,
+    group: "segmentation",
+    title: "Segmentation Principles (หลักการทำงานของ Segmentation)",
+    summary: "แต่ละ Segment คือพื้นที่ต่อเนื่องในมุมมอง Virtual Memory โดยแต่ละโปรเซสจะมี Segment Table ในฮาร์ดแวร์ (1 แถว = 1 Segment) ซึ่งแต่ละ Segment สามารถวางไว้ที่ไหนก็ได้ใน Physical Memory โดยเก็บค่า Start (Base), Length (Bound) และ Access permission (สิทธิ์อ่าน/เขียน) ทำให้หลายโปรเซสสามารถแชร์ Segment ร่วมกันได้",
+    visual: "📋 Segment Table ต่อโปรเซส: เก็บ [Start (Base) | Length (Bound) | Access Permission (R / R-W)]",
+    keyPoint: "การเพิ่ม Access Permission และแยกตารางทำให้ป้องกันการเขียนทับ Code (ตั้งเป็น Read-only) และแชร์ไลบรารีได้"
+  },
+  {
+    page: 12,
+    group: "segmentation",
+    title: "Segmentation Implementation (แผนภาพการแปลงที่อยู่แบบแบ่งเซกเมนต์)",
+    summary: "แสดงการแบ่ง Virtual Address ออกเป็น 2 ส่วนคือ [Segment # | Offset] โดยใช้เลข Segment # ไปเปิดตาราง Segment Table เพื่อดึง Base, Bound และ Access มาตรวจสอบ ถ้าระยะ Offset > Bound หรือสิทธิ์ไม่ตรง จะเกิด Exception แต่ถ้าผ่าน จะนำ Base + Offset ไปชี้ตำแหน่งใน Physical Memory ซึ่งแต่ละเซกเมนต์วางกระจายกันได้",
+    visual: "Virtual Addr = [Seg # | Offset]\n  ├─ Seg # ──> ค้นตารางได้ Base, Bound, Access\n  └─ Offset ─> เทียบกับ Bound (<) และบวกกับ Base (+) ──> Physical Addr",
+    keyPoint: "ในมุมมองโปรแกรมมีช่องว่างระหว่าง Segment ได้ (Sparse) และใน RAM จริงแต่ละ Segment ไม่จำเป็นต้องเรียงติดกัน"
+  },
+  {
+    page: 13,
+    group: "segmentation",
+    title: "Segmentation Concrete Example (ตัวอย่างการคำนวณจริงด้วยโค้ด Assembly)",
+    summary: "ตัวอย่างระบบที่ใช้ Segment 2 บิต และ Offset 12 บิต ตารางกำหนด: code (seg 0) start=0x4000 len=0x700, data (seg 1) start=0x0 len=0x500, stack (seg 3) start=0x2000 len=0x1000 เช่น คำสั่ง main อยู่ที่ Virtual 0x0240 (Seg 0, Offset 0x240) แปลงเป็น Physical = 0x4000 + 0x240 = 0x4240 ส่วนตัวแปร x อยู่ที่ Virtual 0x1108 (Seg 1, Offset 0x108) แปลงเป็น Physical = 0x0 + 0x108 = 0x0108",
+    visual: "🧮 ตัวอย่างคำนวณจริง:\n• main @ Virtual 0x0240 ➔ Seg 0 (Code: Base 0x4000) + Offset 0x240 = Physical 0x4240\n• ตัวแปร x @ Virtual 0x1108 ➔ Seg 1 (Data: Base 0x0000) + Offset 0x108 = Physical 0x0108",
+    keyPoint: "บิตบนสุด 2 บิตบอกหมายเลข Segment (0=Code, 1=Data, 2=Heap, 3=Stack) ส่วน 12 บิตล่างคือระยะห่างภายในเซกเมนต์"
+  },
+  {
+    page: 14,
+    group: "segmentation",
+    title: "Sharing Segments Between Processes (แผนภาพการแชร์เซกเมนต์ระหว่างโปรเซส)",
+    summary: "แสดงภาพ Process 1 และ Process 2 ที่ต่างก็มี Segment Table ของตัวเอง แต่ช่อง Code Segment (Seg 0, Read-only) ของทั้งสองตารางชี้ไปยังค่า Base เดียวกันใน Physical Memory (P1's + P2's Code) ในขณะที่ Data, Heap, Stack ชี้ไปยังคนละพื้นที่กัน",
+    visual: "Process 1 [Seg 0: Code (Read)] ──┐\n                                 ├──> 🗄️ Physical RAM ก้อนเดียวกัน [Shared Code]\nProcess 2 [Seg 0: Code (Read)] ──┘",
+    keyPoint: "ช่วยประหยัด RAM มหาศาลเมื่อหลายโปรแกรมรันโค้ดเดียวกันหรือใช้ Shared Library เดียวกัน"
+  },
+  {
+    page: 15,
+    group: "segmentation",
+    title: "Question: Drawbacks of Segmentation (คำถามชวนคิดข้อเสียของ Segmentation)",
+    summary: "สไลด์คำถามให้ผู้เรียนวิเคราะห์ว่า แม้ Segmentation จะแก้ปัญหาเรื่องการแชร์และการป้องกันหน่วยความจำได้แล้ว แต่ยังมีข้อเสียใหญ่เรื่องใดตามมา",
+    visual: "❓ ชวนคิด: เมื่อแต่ละ Segment มีขนาดใหญ่เล็กไม่เท่ากันเลย การจัดวางใน RAM จะเกิดปัญหาอะไร?",
+    keyPoint: "ปัญหาเกิดจากขนาดที่ไม่เท่ากัน (Variable-size allocation)"
+  },
+  {
+    page: 16,
+    group: "segmentation",
+    title: "Segmentation: Pros & Cons (สรุปข้อดี-ข้อเสียของ Segmentation)",
+    summary: "ข้อดี (Pros): แชร์เซกเมนต์ข้ามโปรเซสได้, ป้องกันการเขียนทับโค้ดได้, ขยาย Stack/Heap ได้อย่างโปร่งใส, และตรวจจับเพื่อทำ Copy-on-write ได้ ข้อเสีย (Cons): การจัดการหน่วยความจำซับซ้อนเพราะต้องหาช่องว่างตามขนาดที่ต้องการ, อาจต้องย้ายจัดเรียงหน่วยความจำใหม่ (Compaction), และเกิด External fragmentation (พื้นที่ว่างเศษเล็กเศษน้อยระหว่างก้อนที่ใช้งานไม่ได้)",
+    visual: "✅ ข้อดี: Share ได้, Protect Code ได้, Grow Stack/Heap ได้, รองรับ Copy-on-Write\n❌ ข้อเสีย: จัดการยาก, ต้องคอยย้าย RAM, เกิด External Fragmentation (ช่องว่างฟันหลอ)",
+    keyPoint: "ปัญหา External Fragmentation ของ Segmentation นำไปสู่แนวคิดการหั่นหน่วยความจำเป็นชิ้นขนาดเท่ากันทั้งหมด คือ Paging"
+  },
+  {
+    page: 17,
+    group: "paging",
+    title: "Paged Translation (หัวข้อวิธีที่ 3: การแบ่งหน้าขนาดคงที่)",
+    summary: "เข้าสู่เทคนิค Paging ซึ่งเปลี่ยนจากการจองหน่วยความจำขนาดไม่เท่ากัน มาเป็นการแบ่งหน่วยความจำทั้งฝั่ง Virtual และ Physical ออกเป็นบล็อกขนาดคงที่เท่าๆ กัน",
+    visual: "📄 ตัดแบ่งทั้ง Virtual Memory (เรียกว่า Page) และ Physical RAM (เรียกว่า Frame) ให้มีขนาดเท่ากันเป๊ะ!",
+    keyPoint: "ตัดปัญหา External Fragmentation ทิ้งไปได้อย่างสิ้นเชิง"
+  },
+  {
+    page: 18,
+    group: "paging",
+    title: "Paged Translation Concepts (หลักการจัดการหน้าและ Bitmap Allocation)",
+    summary: "จัดการหน่วยความจำเป็นหน่วยขนาดคงที่เรียกว่า Page ทำให้หาหน้าว่างได้ง่ายมาก โดยใช้ Bitmap allocation (เช่น 0011111100000001100) ที่ 1 บิตแทน 1 Physical Page Frame (0=ว่าง, 1=ใช้งาน) แต่ละโปรเซสจะมี Page Table ของตัวเองเก็บไว้ใน Physical Memory โดยมีรีจิสเตอร์ฮาร์ดแวร์ชี้จุดเริ่มต้น (Page table start) และความยาวตาราง",
+    visual: "🗺️ Bitmap Allocation: [0|0|1|1|1|0|0|1...] (1 บิต = 1 Frame หาช่องว่างเลข 0 ได้ทันที)\n🗂️ Page Table เก็บใน Physical RAM (เพราะมีขนาดใหญ่กว่า Segment Table)",
+    keyPoint: "ข้อสังเกตสำคัญ: Segment Table เล็กจึงเก็บในฮาร์ดแวร์ได้ แต่ Page Table ใหญ่จึงต้องเก็บใน Physical Memory"
+  },
+  {
+    page: 19,
+    group: "paging",
+    title: "Paged Translation (Abstract View - มุมมองเชิงนามธรรม)",
+    summary: "แสดงภาพเปรียบเทียบ Processor's View ที่มองเห็น Virtual Pages เรียงต่อเนื่องสวยงาม (Code, Data, Heap, Stack) แต่เมื่อผ่านการแมปด้วย Page Table แล้ว แต่ละหน้า (เช่น Code0, Code1, Data0, Heap0, Stack0) สามารถกระจายไปวางอยู่ใน Frame ใดก็ได้ใน Physical Memory โดยไม่ต้องเรียงติดกันเลย",
+    visual: "Virtual Pages [Code0, Code1, Data0...] ──(กระจายอิสระ)──> Physical Frames [Frame 1: Code0, Frame 5: Code1...]",
+    keyPoint: "ความต่อเนื่องในมุมมองโปรแกรม (Virtual Contiguity) ไม่จำเป็นต้องต่อเนื่องในหน่วยความจำจริง (Physical Contiguity)"
+  },
+  {
+    page: 20,
+    group: "paging",
+    title: "Paged Translation (Implementation - กลไกการแปลงที่อยู่ระดับบิต)",
+    summary: "Virtual Address ถูกแบ่งเป็น [Page # | Offset] ฮาร์ดแวร์ใช้ Page # เป็นดัชนี (Index) เปิดตาราง Page Table เพื่อดึงหมายเลข Physical Frame ออกมา แล้วนำหมายเลข Frame มาต่อ (Concatenate) กับ Offset เดิมโดยตรงเพื่อเป็น [Frame | Offset] โดยไม่ต้องใช้วงจรบวกเหมือน Segmentation เพราะขนาดหน้าเป็นเลขยกกำลังสอง",
+    visual: "Virtual Address = [ Virtual Page # | Offset ]\n                         │             │ (ลอกลงมาตรงๆ ไม่ต้องบวก!)\n                         ▼             ▼\nPhysical Address = [ Physical Frame | Offset ]",
+    keyPoint: "Offset มีขนาดเท่ากันทั้งใน Virtual และ Physical Address เพราะขนาดของ Page และ Frame เท่ากันเสมอ"
+  },
+  {
+    page: 21,
+    group: "paging",
+    title: "Paging Example (ตัวอย่างการแมปตัวอักษร A–L ผ่าน Page Table)",
+    summary: "ตัวอย่างเข้าใจง่าย: Process View มี 3 หน้า หน้าละ 4 ตัวอักษร: Page 0 = [A,B,C,D], Page 1 = [E,F,G,H], Page 2 = [I,J,K,L] ตาราง Page Table เก็บค่า [4, 3, 1] หมายความว่า Page 0 (A-D) ไปอยู่ที่ Frame 4 (ล่างสุด), Page 1 (E-H) ไปอยู่ที่ Frame 3, และ Page 2 (I-L) ไปอยู่ที่ Frame 1 ใน Physical Memory",
+    visual: "Process View: Page 0 [A B C D], Page 1 [E F G H], Page 2 [I J K L]\nPage Table: Index 0 ➔ Frame 4 | Index 1 ➔ Frame 3 | Index 2 ➔ Frame 1",
+    keyPoint: "คุณสามารถทดลองคำนวณตัวอย่างหน้านี้ได้ในแท็บ Interactive Simulator ของเว็บไซต์นี้!"
+  },
+  {
+    page: 22,
+    group: "paging",
+    title: "Question: Drawbacks of Paging (คำถามชวนคิดข้อเสียของ Paging)",
+    summary: "สไลด์คำถามกระตุ้นให้คิดว่า การใช้ Paging แบบตารางชั้นเดียว (Single-level Linear Page Table) มีจุดอ่อนร้ายแรงอะไรเมื่อขนาด Address Space กว้างขึ้น",
+    visual: "❓ ชวนคิด: ถ้าโปรแกรมใช้พื้นที่แบบกระจัดกระจาย (Sparse) ในระบบ 32-bit หรือ 64-bit ตาราง Page Table จะใหญ่ขนาดไหน?",
+    keyPoint: "นำไปสู่ปัญหาขนาดตาราง Page Table ที่บวมมหาศาลในหน้า 23"
+  },
+  {
+    page: 23,
+    group: "paging",
+    title: "Sparse Address Spaces (ปัญหาพื้นที่แอดเดรสเบาบางและขนาดตาราง)",
+    summary: "โปรแกรมยุคใหม่ต้องการส่วนย่อยแบบไดนามิกจำนวนมาก เช่น Per-processor heaps, Per-thread stacks, Memory-mapped files และ Dynamically linked libraries ซึ่งวางห่างกันมาก (Sparse) หากใช้ตารางชั้นเดียว: ระบบ 32-bit (หน้าละ 4KB) ต้องมีถึง ~500K–1M entries และระบบ 64-bit ต้องมีถึง 4 quadrillion page table entries ซึ่งเก็บใน RAM ไม่ไหว!",
+    visual: "⚠️ ปัญหา Linear Page Table:\n• 32-bit (4KB page) ➔ หลายแสนถึงล้านรายการต่อโปรเซส\n• 64-bit ➔ 4 Quadrillion รายการ (เป็นไปไม่ได้ที่จะจองตารางรวดเดียว)",
+    keyPoint: "เพราะพื้นที่ส่วนใหญ่ใน Virtual Address ว่างเปล่า การสร้างตารางมารอทั้งพื้นที่จึงสิ้นเปลืองหน่วยความจำอย่างยิ่ง"
+  },
+  {
+    page: 24,
+    group: "multilevel",
+    title: "Multi-level Translation (หัวข้อวิธีที่ 4: การแปลงที่อยู่หลายระดับ)",
+    summary: "เข้าสู่เทคนิคการแปลงที่อยู่แบบหลายระดับ (Multi-level Translation) เพื่อแก้ปัญหาตาราง Page Table ขนาดยักษ์ใน Sparse Address Space",
+    visual: "🌳 เปลี่ยนจากตารางแถวยาวรวดเดียว (Flat Array) มาเป็นโครงสร้างต้นไม้ (Tree of Tables)",
+    keyPoint: "สร้างเฉพาะกิ่งก้านของตารางที่มีการใช้งานจริงเท่านั้น"
+  },
+  {
+    page: 25,
+    group: "multilevel",
+    title: "Multi-level Translation Overview (โครงสร้างต้นไม้และข้อดีของการใช้ Page เป็นหน่วยย่อยสุด)",
+    summary: "จัดตารางการแปลงเป็นโครงสร้างต้นไม้ (Tree) เช่น Paged segmentation, Multi-level page tables หรือ Multi-level paged segmentation โดยมีหน่วยย่อยระดับล่างสุดเป็น Fixed-size page ทำให้จัดสรรหน่วยความจำง่ายกว่าเซกเมนต์, ประหยัดพื้นที่สำหรับ Sparse address กว่า Paging ชั้นเดียว, โอนย้ายกับดิสก์ง่าย, สร้าง TLB ง่าย, ทำ Reverse lookup ง่าย และเลือกแชร์/ป้องกันได้หลายระดับ",
+    visual: "🌲 Tree Structure: [ระดับบนคัดกรองก้อนใหญ่] ──> [ระดับล่างสุดเป็น Fixed-size Page]\nได้ข้อดีรวมกันทั้งความยืดหยุ่นของ Segment และความจัดการง่ายของ Page",
+    keyPoint: "การให้ระดับล่างสุดเป็น Page ขนาดคงที่เสมอ ช่วยให้การจัดการฮาร์ดแวร์และดิสก์ (Swap/Demand Paging) มีประสิทธิภาพสูง"
+  },
+  {
+    page: 26,
+    group: "multilevel",
+    title: "Paged Segmentation (การผสมผสาน Segmentation เข้ากับ Paging)",
+    summary: "หน่วยความจำของโปรเซสถูกแบ่งเป็น Segment ก่อน แต่แทนที่ Segment Table Entry จะชี้ไปยังก้อนข้อมูลใน RAM โดยตรง กลับเก็บ: 1) Pointer ชี้ไปยัง Page Table ของเซกเมนต์นั้น 2) ความยาวของ Page Table (จำนวนหน้าในเซกเมนต์) และ 3) Access permissions ส่วน Page Table Entry จะเก็บหมายเลข Page frame และสิทธิ์เข้าถึง ทำให้แชร์หรือป้องกันได้ทั้งระดับ Segment และระดับ Page",
+    visual: "[Segment Table Entry] ──ชี้ไปที่──> [Page Table ของ Segment นั้น] ──ชี้ไปที่──> [Physical Page Frame]",
+    keyPoint: "ไม่ต้องจองตาราง Page Table สำหรับช่องว่างระหว่าง Segment อีกต่อไป"
+  },
+  {
+    page: 27,
+    group: "multilevel",
+    title: "Paged Segmentation Implementation (แผนภาพวงจร Paged Segmentation)",
+    summary: "Virtual Address ถูกแบ่งเป็น 3 ส่วน: [Segment | Page | Offset] ขั้นแรกใช้เลข Segment เปิด Segment Table เพื่อดึงที่อยู่ Page Table และขนาด (Size) มาเช็คว่าเลข Page เกินขนาดหรือไม่ ถ้าไม่เกินจึงใช้เลข Page เป็นดัชนีเปิด Page Table ของเซกเมนต์นั้นเพื่อได้เลข Frame แล้วนำมารวมกับ Offset เป็น Physical Address",
+    visual: "Virtual Address = [ Segment | Page | Offset ]\n1) Segment ➔ เปิด Segment Table ได้ Pointer ไปยัง Page Table + เช็ค Size\n2) Page ➔ เปิด Page Table ได้ Frame ──> รวมกับ Offset ได้ Physical Address",
+    keyPoint: "เกิดการค้นตาราง 2 ขั้นตอน (Segment Table แล้วตามด้วย Page Table)"
+  },
+  {
+    page: 28,
+    group: "multilevel",
+    title: "Multilevel Paging (แผนภาพตารางเพจหลายระดับ)",
+    summary: "แสดงการทำงานของ Multilevel Paging (เช่น 3 ระดับ): Virtual Address แบ่งเป็น [Index 1 | Index 2 | Index 3 | Offset] โดยใช้ Index 1 ค้นตาราง Level 1 เพื่อหาที่อยู่ของตาราง Level 2, ใช้ Index 2 ค้นตาราง Level 2 เพื่อหาที่อยู่ของตาราง Level 3, และใช้ Index 3 ค้นตาราง Level 3 เพื่อให้ได้เลข Frame แล้วนำไปต่อกับ Offset",
+    visual: "[Index 1] ➔ ตาราง Level 1 ──ชี้ไป──> [Index 2] ➔ ตาราง Level 2 ──ชี้ไป──> [Index 3] ➔ ตาราง Level 3 ──ได้──> [Frame | Offset]",
+    keyPoint: "ตารางย่อยแต่ละระดับมีขนาดพอดีกับ 1 Page ทำให้จัดเก็บและจัดการในหน่วยความจำได้สะดวกมาก (สถาปัตยกรรม x86/x86-64 ใช้แนวคิดนี้)"
+  },
+  {
+    page: 29,
+    group: "multilevel",
+    title: "Question: Drawbacks of Multilevel Translation (คำถามชวนคิดข้อเสีย)",
+    summary: "สไลด์คำถามให้ผู้เรียนคิดวิเคราะห์ว่า การใช้ตารางหลายระดับ (Multilevel Translation) เพื่อประหยัดพื้นที่ตารางนั้น ต้องแลกมาด้วยข้อเสียหรือต้นทุนอะไร",
+    visual: "❓ ชวนคิด: ถ้าจะอ่านข้อมูลใน RAM แค่ 1 ครั้ง แต่ต้องเดินค้นตารางถึง 2–4 ชั้น จะเกิดอะไรขึ้นกับความเร็ว?",
+    keyPoint: "แลกความประหยัดพื้นที่ (Space) ด้วยความล่าช้าในการเข้าถึงหน่วยความจำหลายครั้ง (Time / Multiple Lookups)"
+  },
+  {
+    page: 30,
+    group: "multilevel",
+    title: "Multilevel Translation: Pros & Cons (สรุปข้อดี-ข้อเสียของการแปลงหลายระดับ)",
+    summary: "ข้อดี (Pros): จองและเติมเฉพาะส่วนของตาราง Page Table ที่มีการใช้งานจริงเท่านั้น, จัดสรรหน่วยความจำง่าย, แชร์ข้อมูลได้ทั้งระดับ Segment หรือ Page ข้อเสีย (Cons): มี Space overhead จากพอยน์เตอร์ที่ชี้ข้ามระดับ และต้องทำการค้นหาในหน่วยความจำ 2 ครั้งขึ้นไป (Two or more lookups) ต่อการอ้างอิงหน่วยความจำเพียง 1 ครั้ง!",
+    visual: "✅ ข้อดี: ประหยัด RAM (สร้างตารางเฉพาะส่วนที่ใช้), แชร์ง่าย\n❌ ข้อเสีย: ต้องวิ่งเข้า RAM หลายรอบ (Multiple Lookups) เพื่อแปลงที่อยู่แค่ 1 ครั้ง",
+    keyPoint: "ปัญหาความช้าจากการต้องค้นตารางหลายชั้นนี้ คือสาเหตุที่ต้องมีฮาร์ดแวร์เร่งความเร็วในหน้าถัดไป"
+  },
+  {
+    page: 31,
+    group: "tlb",
+    title: "Question: Accelerate Multilevel Translation (เราจะเร่งความเร็วได้อย่างไร?)",
+    summary: "สไลด์คำถามนำเข้าสู่ส่วนสุดท้ายของบทที่ 7: เราจะสามารถเร่งความเร็วของการแปลงที่อยู่แบบหลายระดับ (Accelerate multilevel translation) ได้หรือไม่ และทำได้อย่างไร?",
+    visual: "❓ คำถาม: ทำอย่างไรให้ไม่ต้องเดินค้นตารางหลายชั้นทุกครั้งที่ CPU อ้างอิงหน่วยความจำ? ➔ คำตอบคือการใช้ Cache!",
+    keyPoint: "อาศัยหลักการ Locality ของโปรแกรมมาสร้างแคชสำหรับการแปลที่อยู่โดยเฉพาะ"
+  },
+  {
+    page: 32,
+    group: "tlb",
+    title: "Efficient Address Translation: TLB (รู้จักกับ Translation Lookaside Buffer)",
+    summary: "แนะนำ TLB (Translation Lookaside Buffer) ซึ่งเป็นแคชความเร็วสูงในฮาร์ดแวร์ที่เก็บผลการแปลง Virtual Page ➔ Physical Page ล่าสุดไว้ ถ้าเกิด TLB Hit จะนำผลลัพธ์ไปใช้ได้ทันทีโดยไม่ต้องเปิดตาราง แต่ถ้าเกิด TLB Miss จึงค่อยเดินค้นตารางหลายระดับ (Page table walk) โดยมีสูตรต้นทุน: Cost of translation = Cost of TLB lookup + Prob(TLB miss) × Cost of page table lookup",
+    visual: "⚡ สูตรคำนวณเวลาเฉลี่ย:\nCost = Cost(TLB Lookup) + [ โอกาสเกิด TLB Miss × Cost(Page Table Walk) ]",
+    keyPoint: "ถ้าอัตรา TLB Hit สูงมาก (เช่น >99%) ค่า Prob(TLB miss) จะใกล้ 0 ทำให้การแปลงที่อยู่เร็วเกือบเท่าการค้น TLB เพียงอย่างเดียว"
+  },
+  {
+    page: 33,
+    group: "tlb",
+    title: "TLB and Page Table Translation (แผนภาพการทำงานร่วมกันของ TLB และ Page Table)",
+    summary: "แสดงลำดับการทำงานเมื่อ Processor ส่ง Virtual Address ออกมา: จะส่งไปค้นที่ TLB ก่อน หาก Hit จะได้เลข Frame ไปรวมกับ Offset เข้าสู่ Physical Memory ทันที แต่หาก Miss จึงจะส่ง Virtual Address ไปค้นที่ Page Table (ถ้า Valid ก็ได้เลข Frame และนำมาอัปเดตลง TLB แต่ถ้า Invalid จะโยน Exception)",
+    visual: "Processor ──Virtual Addr──> [TLB]\n  ├─(Hit)──> ได้ Frame ทันที! ──> รวมกับ Offset ──> [Physical Memory]\n  └─(Miss)─> ค้น [Page Table] ─(Valid)─> ได้ Frame (และจำไว้ใน TLB)",
+    keyPoint: "สังเกตว่า Offset ไม่ต้องผ่าน TLB หรือ Page Table เลย แต่ถูกส่งมารอรวมกับ Frame ได้โดยตรง"
+  },
+  {
+    page: 34,
+    group: "tlb",
+    title: "TLB Lookup Detail (เจาะลึกการเปรียบเทียบค้นหาภายใน TLB)",
+    summary: "แสดงโครงสร้างภายในของ TLB ซึ่งเก็บตาราง [Virtual Page | Page Frame | Access] เมื่อมี Virtual Address เข้ามา ฮาร์ดแวร์จะนำเลข Page# ไปเปรียบเทียบ (=) กับทุกช่องใน TLB พร้อมๆ กัน (Parallel associative lookup) หากพบช่องที่ตรงกัน (Matching Entry) จะดึง Page Frame และตรวจสอบ Access เพื่อสร้าง Physical Address ทันที หากไม่ตรงเลยสักช่อง (≠) จึงไปทำ Page Table Lookup",
+    visual: "Page# ──> เปรียบเทียบ (=) ขนานกันทุกแถวใน TLB\n  ├─ เจอแถวที่ตรง (Match) ➔ ดึง [Frame] + [Offset]\n  └─ ไม่ตรงเลย (≠) ➔ ไปทำ Page Table Lookup ใน RAM",
+    keyPoint: "เพราะ TLB เช็คขนานกันด้วยฮาร์ดแวร์จึงทำงานเสร็จภายในระดับ ~1 นาโนวินาที (1 clock cycle)"
+  },
+  {
+    page: 35,
+    group: "tlb",
+    title: "Address Translation Uses (สรุปประโยชน์ของการแปลงที่อยู่ - ส่วนที่ 1)",
+    summary: "สรุปการประยุกต์ใช้งาน Address Translation เชิงระบบ 5 ข้อแรก: 1) Process isolation (แยกโปรเซสไม่ให้ยุ่งกับหน่วยความจำคนอื่นหรือของ Kernel) 2) Efficient IPC (สื่อสารระหว่างโปรเซสด้วย Shared memory) 3) Shared code segments (ใช้ไลบรารีร่วมกัน) 4) Program initialization (เริ่มรันโปรแกรมได้ทันทีโดยยังไม่ต้องโหลดเข้า RAM ทั้งหมด) 5) Dynamic memory allocation (จองหน้าให้ Stack/Heap เมื่อใช้จริง)",
+    visual: "🛠️ ประโยชน์ส่วนที่ 1: Isolation | Shared Memory IPC | Shared Libraries | Fast Program Start | Dynamic Stack/Heap",
+    keyPoint: "แสดงให้เห็นว่า Address Translation ไม่ใช่แค่เรื่องการหาตำแหน่งใน RAM แต่เป็นหัวใจของฟีเจอร์สำคัญใน OS"
+  },
+  {
+    page: 36,
+    group: "tlb",
+    title: "Address Translation Uses - More (สรุปประโยชน์เพิ่มเติม & เชื่อมเข้าสู่บทที่ 8)",
+    summary: "สรุปประโยชน์เพิ่มเติมอีก 5 ข้อ: 1) Cache management (เช่น Page coloring เพื่อลดการชนกันในแคช) 2) Program debugging (ทำ Data breakpoints ดักจับเมื่อมีการเข้าถึงที่อยู่ที่กำหนด) 3) Zero-copy I/O (ส่งข้อมูลจากอุปกรณ์ I/O เข้า/ออกหน่วยความจำผู้ใช้โดยตรง) 4) Memory mapped files (อ่านเขียนไฟล์ด้วยคำสั่ง load/store) 5) Demand-paged virtual memory (สร้างภาพลวงตาของหน่วยความจำขนาดเกือบอนันต์โดยใช้ดิสก์หนุนหลัง)",
+    visual: "🌉 ประโยชน์ส่วนที่ 2 (เชื่อมสู่บทที่ 8): Page Coloring | Data Breakpoints | Zero-copy I/O | Memory-mapped Files | Demand-paged Virtual Memory",
+    keyPoint: "2 หัวข้อสุดท้ายในหน้า 36 นี้เองที่ถูกนำไปขยายผลอย่างละเอียดในบทที่ 8 (Virtual Memory)"
+  }
+];
+
+const ch8Slides = [
+  {
+    page: 1,
+    group: "cache",
+    title: "Virtual Memory (หน้าปกบทที่ 8: หน่วยความจำเสมือน)",
+    summary: "เปิดบทเรียนเรื่อง Virtual Memory ซึ่งต่อยอดจากกลไก Address Translation ในบทที่ 7 เพื่ออธิบายหลักการของ Cache, ลำดับชั้นหน่วยความจำ (Memory Hierarchy), การดึงหน้าข้อมูลตามต้องการ (Demand Paging) และอัลกอริทึมการแทนที่หน้า (Page Replacement Policies)",
+    visual: "💿 [Disk (ขนาดใหญ่มาก)] <──(Demand Paging / Replacement)──> 🧠 [Physical RAM (ทำหน้าที่เป็น Cache ให้ Disk)]",
+    keyPoint: "ในบทที่ 8 เราจะมองว่า Physical RAM คือ 'Cache' ของข้อมูลที่อยู่บน Disk!"
+  },
+  {
+    page: 2,
+    group: "cache",
+    title: "Definitions (คำนิยามพื้นฐานเรื่อง Cache และ Locality)",
+    summary: "นิยามคำสำคัญ 4 คำ: 1) Cache คือสำเนาของข้อมูลที่เข้าถึงได้เร็วกว่าต้นฉบับ (Hit = มีข้อมูลในแคช, Miss = ไม่มีในแคช) 2) Cache block คือหน่วยการจัดเก็บของแคช (ประกอบด้วยหลายตำแหน่งหน่วยความจำ) 3) Temporal locality คือแนวโน้มที่โปรแกรมจะอ้างอิงตำแหน่งเดิมซ้ำๆ ในเวลาใกล้กัน (เช่น คำสั่งในลูป) 4) Spatial locality คือแนวโน้มที่โปรแกรมจะอ้างอิงตำแหน่งข้างเคียงกัน (เช่น ข้อมูลอาร์เรย์ในลูป)",
+    visual: "🔁 Temporal Locality: ใช้ที่เดิมซ้ำๆ (เช่น คำสั่งใน Loop)\n📏 Spatial Locality: ใช้ที่อยู่ติดๆ กัน (เช่น อ่าน Array เรียงช่องใน Loop)",
+    keyPoint: "ระบบ Cache และ Virtual Memory ทำงานได้ดีเพราะโปรแกรมทั่วไปมีสมบัติ Temporal และ Spatial Locality"
+  },
+  {
+    page: 3,
+    group: "cache",
+    title: "Cache Concept - Read (แผนภาพแนวคิดการอ่านข้อมูลผ่าน Cache)",
+    summary: "เมื่อต้องการอ่านข้อมูล (Fetch Address): จะตรวจสอบก่อนว่ามีที่อยู่นั้นใน Cache หรือไม่ (Address In Cache?) ถ้ามี (Yes = Hit) ก็ส่งค่ากลับทันที แต่ถ้าไม่มี (No = Miss) จะต้องไปดึงข้อมูลจากแหล่งเก็บถัดไป (Fetch Address จากระดับล่าง) แล้วนำมาเก็บไว้ใน Cache (Store Value in Cache) ก่อนส่งให้ผู้เรียก",
+    visual: "Fetch Addr ──> [อยู่ใน Cache ไหม?]\n  ├─ Yes (Hit) ──> คืนค่าทันที\n  └─ No (Miss) ──> ดึงจากระดับถัดไป ──> บันทึกเก็บลง Cache ──> คืนค่า",
+    keyPoint: "การอ่านที่เกิด Miss จะนำข้อมูลมาเก็บในแคชเสมอ เพื่อหวังผลจาก Temporal/Spatial Locality ในครั้งถัดไป"
+  },
+  {
+    page: 4,
+    group: "cache",
+    title: "Cache Concept - Write (แผนภาพการเขียนข้อมูล: Write Through vs Write Back)",
+    summary: "อธิบายการเขียนข้อมูลผ่าน WriteBuffer เข้าสู่ Cache และเปรียบเทียบ 2 นโยบายสำคัญ: 1) Write through คือส่งการเปลี่ยนแปลงไปยังหน่วยเก็บข้อมูลระดับถัดไปทันทีที่มีการเขียน 2) Write back คือเก็บการเปลี่ยนแปลงไว้ใน Cache ก่อน แล้วค่อยเขียนลงระดับถัดไปเมื่อบล็อกนั้นถูกแทนที่ (Replaced/Evicted) เท่านั้น",
+    visual: "✍️ Write Through: เขียนลง Cache ปุ๊บ ส่งไปเขียนระดับล่างทันที (ช้ากว่าแต่ข้อมูลตรงกันตลอด)\n📝 Write Back: เขียนแก้เฉพาะใน Cache ก่อน ค่อยเขียนลงระดับล่างตอนถูกไล่ที่ (เร็วมาก ประหยัด I/O)",
+    keyPoint: "ระบบ Virtual Memory (RAM กับ Disk) ใช้แนวคิดแบบ Write Back เพราะดิสก์ช้ามาก จะเขียนลงดิสก์เฉพาะหน้าที่มีการแก้ไข (Dirty Page) ตอนถูกไล่ที่เท่านั้น"
+  },
+  {
+    page: 5,
+    group: "cache",
+    title: "Memory Hierarchy (ตารางลำดับชั้นของหน่วยความจำและเวลาเข้าถึง)",
+    summary: "ตารางเปรียบเทียบความเร็ว (Hit Cost) และขนาด (Size) ตั้งแต่ระดับเร็วสุดไปช้าสุด: L1 cache/TLB (1 ns, 64 KB), L2 cache/TLB (4 ns, 256 KB), L3 cache (12 ns, 2 MB - ใน i7 มี 8MB แชร์ร่วมกัน ส่วน L2 แยกตามคอร์), Memory DRAM (100 ns, 10 GB), Data center DRAM / Local NVM (100 μs), Local disk (10 ms, 1 TB), Data center disk (10 ms, 100 PB), Remote data center disk (200 ms, 1 XB)",
+    visual: "⚡ L1 (1 ns) ➔ L2 (4 ns) ➔ L3 (12 ns) ➔ DRAM (100 ns) ➔ NVM (100 μs) ➔ Disk (10 ms = 10,000,000 ns!)",
+    keyPoint: "สังเกตความต่าง: Local Disk (10 ms) ช้ากว่า DRAM (100 ns) ถึง 100,000 เท่า! ดังนั้นการลด Page Fault (Miss ไปที่ดิสก์) จึงสำคัญมหาศาล"
+  },
+  {
+    page: 6,
+    group: "cache",
+    title: "Cache Hit Rate vs Cache Size (กราฟความสัมพันธ์ระหว่างขนาดแคชกับอัตรา Hit)",
+    summary: "กราฟแสดงให้เห็นว่า เมื่อเพิ่มขนาด Cache Size (KB) ในช่วงแรก (เช่น จาก 0 ไป 1, 2, 4 KB) อัตราการเกิด Hit Rate จะพุ่งสูงขึ้นอย่างรวดเร็ว (จาก 0% ไปเกิน 75–85%) แต่หลังจากถึงจุดหนึ่ง (Knee of the curve เช่น 8–16 KB) กราฟจะเริ่มแบนราบ คือเพิ่มขนาดแคชไปก็ได้ Hit Rate เพิ่มขึ้นอีกเพียงเล็กน้อย",
+    visual: "📈 กราฟพุ่งชันช่วงแรก (0 ➔ 4 KB ได้ Hit ~85%) แล้วค่อยๆ แบนราบเมื่อเกิน Working Set ของโปรแกรม",
+    keyPoint: "สะท้อนว่าโปรแกรมมี Working Set ขนาดจำกัด ทำให้แคชไม่ต้องมีขนาดใหญ่เท่าหน่วยความจำจริงก็ให้ Hit Rate สูงมากได้"
+  },
+  {
+    page: 7,
+    group: "cache",
+    title: "Example of Cache Hit Rate Over Time (กราฟอัตราแคชฮิตเมื่อเวลาผ่านไป)",
+    summary: "กราฟแสดงพฤติกรรมจริงของโปรแกรมตามเวลา (Time): ส่วนใหญ่อัตรา Hit Rate จะเกาะอยู่ในระดับสูงมาก (~90–95%) แต่จะมีบางช่วงเวลาที่กราฟดิ่งวูบลงมาชั่วคราว (เช่น ลงมาแถว 50–65%) ซึ่งเกิดจากช่วงที่โปรแกรมเปลี่ยนเฟสการทำงาน (Phase change) หรือเปลี่ยน Working Set ใหม่",
+    visual: "〰️ Hit Rate สูงนิ่ง (~92%) ──> 📉 ดิ่งวูบเมื่อเปลี่ยนเฟสการทำงาน (Cold misses ในเฟสใหม่) ──> 📈 กลับมาสูงนิ่งอีกครั้ง",
+    keyPoint: "แสดงให้เห็นว่า Locality ของโปรแกรมมีการเปลี่ยนแปลงตามช่วงเวลาการทำงาน"
+  },
+  {
+    page: 8,
+    group: "demand",
+    title: "Main Points of Virtual Memory (ประเด็นสำคัญ 3 ข้อของบทที่ 8)",
+    summary: "สรุปคำถามหลัก 3 ข้อของบทนี้: 1) เราจะสร้างภาพลวงตาของหน่วยความจำขนาดเกือบอนันต์บน RAM ที่จำกัดได้อย่างไร? (ด้วย Demand-paged virtual memory และ Memory-mapped files) 2) เมื่อหน่วยความจำเต็ม เราจะเลือกแทนที่หน้าไหนดี? (FIFO, MIN, LRU, LFU) 3) แคชทำงานได้ดีกับโหลดงานแบบใด? (Spatial/temporal locality เทียบกับ Zipf workloads)",
+    visual: "🎯 3 คำถามหลัก: [1. สร้างหน่วยความจำเสมือนด้วย Demand Paging] ➔ [2. เลือกหน้าที่จะไล่ที่ด้วย FIFO/MIN/LRU/LFU] ➔ [3. วิเคราะห์รูปแบบ Workload]",
+    keyPoint: "เป็นโครงสร้างหลักของเนื้อหาตั้งแต่หน้า 9 ไปจนจบหน้า 27"
+  },
+  {
+    page: 9,
+    group: "demand",
+    title: "Hardware Address Translation is a Power Tool (การใช้ Kernel Trap สร้างฟีเจอร์ทรงพลัง)",
+    summary: "ย้ำแนวคิดที่เชื่อมมาจากบทที่ 7 หน้า 5: การที่ฮาร์ดแวร์แปลงที่อยู่สามารถทำให้เกิด Kernel trap เมื่อมีการอ่าน/เขียนที่อยู่ที่กำหนด ช่วยให้ OS สร้างเครื่องมือทรงพลังได้แก่: Copy on write, Fill on reference (ซึ่งโยงลูกศรว่าเป็นหลักการเดียวกับ Demand paged virtual memory และ Memory mapped files), Zero on use, รวมถึงการจำลองบิต Modified bit emulation และ Use bit emulation",
+    visual: "⚡ Kernel Trap on Read/Write ──> Fill on Reference <══> Demand Paged VM & Memory Mapped Files + Bit Emulation",
+    keyPoint: "ถ้าฮาร์ดแวร์บางรุ่นไม่มีบิต Dirty (Modified) หรือ Use bit มาให้ OS ก็สามารถใช้การตั้งสิทธิ์ให้เกิด Trap เพื่อจำลอง (Emulate) บิตเหล่านี้เองได้!"
+  },
+  {
+    page: 10,
+    group: "demand",
+    title: "Demand Paging - Before (แผนภาพก่อนเกิดการเรียกหน้าจากดิสก์)",
+    summary: "แสดงสถานะเริ่มต้น: บน Disk มีทั้ง Page A และ Page B ในส่วนของ Page Table นั้น Virtual Page A มีสถานะเป็น R/W และชี้ไปยัง Frame ที่มี Page A อยู่ใน Physical Memory เรียบร้อยแล้ว แต่ Virtual Page B มีสถานะเป็น 'Invalid' เพราะยังไม่ได้ถูกโหลดเข้ามาใน Physical Memory",
+    visual: "ก่อนเรียกใช้ Page B:\n• Virtual Page A ➔ [R/W] ──ชี้ไปที่──> Physical RAM [Page A]\n• Virtual Page B ➔ [Invalid] (ตัวข้อมูล Page B นอนรออยู่บน Disk)",
+    keyPoint: "การติดป้าย Invalid ใน Page Table คือกลไกบอกฮาร์ดแวร์ให้โยน Page Fault Trap เมื่อโปรแกรมพยายามเข้าถึง Page B"
+  },
+  {
+    page: 11,
+    group: "demand",
+    title: "Demand Paging - After (แผนภาพหลังสลับหน้า Page B เข้ามาแทน Page A)",
+    summary: "เมื่อโปรแกรมเรียกใช้ Virtual Page B และพื้นที่ใน RAM ต้องสลับหน้า: OS จะนำ Page B จาก Disk เข้ามาวางใน Physical Memory Frame แทนที่ Page A จากนั้นอัปเดต Page Table ให้ Virtual Page B กลายเป็นสถานะ 'R/W' (ชี้ไปยัง Page B ใน RAM) และเปลี่ยนสถานะของ Virtual Page A เป็น 'Invalid'",
+    visual: "หลังเรียกใช้ Page B (และแทนที่ Page A):\n• Virtual Page B ➔ เปลี่ยนเป็น [R/W] ──ชี้ไปที่──> Physical RAM [Page B]\n• Virtual Page A ➔ เปลี่ยนเป็น [Invalid]",
+    keyPoint: "โปรเซสทำงานต่อได้ทันทีโดยไม่รู้ตัวเลยว่า OS เพิ่งแอบไปดึงข้อมูลจากดิสก์มาสลับใส่ RAM ให้"
+  },
+  {
+    page: 12,
+    group: "demand",
+    title: "Demand Paging 13 Steps (ลำดับขั้นตอน 13 ขั้นตอนของการเกิด Page Fault)",
+    summary: "สรุปขั้นตอนครบวงจร 13 ขั้น: 1. เกิด TLB miss ➔ 2. เดินค้น Page table walk ➔ 3. เกิด Page fault (เพราะหน้าเป็น invalid) ➔ 4. Trap เข้าสู่ kernel ➔ 5. แปลง virtual address เป็นตำแหน่งไฟล์+offset บนดิสก์ ➔ 6. จอง page frame (ไล่ที่หน้าเก่าถ้าจำเป็น) ➔ 7. สั่งอ่านบล็อกจากดิสก์เข้า page frame (ผ่าน DMA) ➔ 8. เกิด Disk interrupt เมื่อ DMA เสร็จ ➔ 9. ตั้งค่าหน้าในตารางเป็น valid ➔ 10. สั่งโปรเซสทำงานต่อที่คำสั่งเดิมที่เกิด fault ➔ 11. เกิด TLB miss อีกครั้ง ➔ 12. เดินค้น Page table walk เพื่อดึงผลการแปลงเข้า TLB ➔ 13. รันคำสั่งสำเร็จ!",
+    visual: "1.TLB miss ➔ 2.Walk ➔ 3.Page fault ➔ 4.Trap ➔ 5.หาบน Disk ➔ 6.จอง Frame ➔ 7.อ่าน Disk (DMA) ➔ 8.Interrupt ➔ 9.Mark Valid ➔ 10.Resume ➔ 11.TLB miss ➔ 12.Walk ➔ 13.Execute!",
+    keyPoint: "เป็นสไลด์ที่ออกสอบบ่อยมาก! สังเกตว่าหลัง Resume คำสั่งเดิม (ข้อ 10) จะเกิด TLB miss (ข้อ 11) และ Page table walk (ข้อ 12) เพื่อโหลดลง TLB ก่อนรันจริง"
+  },
+  {
+    page: 13,
+    group: "demand",
+    title: "Allocating a Page Frame (ขั้นตอนการไล่ที่หน้าเก่าเพื่อจัดสรรเฟรมใหม่)",
+    summary: "ขยายความขั้นตอนที่ 6 เมื่อต้องไล่ที่หน้าเก่า (Evict): 1) เลือกหน้าเก่าที่จะไล่ที่ 2) ค้นหาทุก Page Table Entries ที่ชี้มายังหน้าเก่านี้ (กรณีแชร์เฟรมร่วมกันหลายโปรเซส) 3) ตั้งค่าทุก Page Table Entry เหล่านั้นให้เป็น Invalid 4) ลบรายการใน TLB ที่เกี่ยวข้องออก (TLB Shootdown/Invalidate) เพื่อไม่ให้ใช้ค่าเก่าที่ Invalid ไปแล้ว 5) หากหน้าเก่ามีการแก้ไข (Dirty) ให้เขียนข้อมูลกลับลงดิสก์",
+    visual: "🧹 ขั้นตอน Evict: เลือกหน้าเก่า ➔ หาทุก PTE ที่ชี้มา ➔ ตั้งเป็น Invalid ➔ ล้างออกจาก TLB ➔ ถ้าถูกแก้ไข (Dirty) ให้เขียนกลับลง Disk",
+    keyPoint: "ห้ามลืมลบออกจาก TLB เด็ดขาด! เพราะถ้าไม่ลบ โปรเซสจะยังเกิด TLB Hit และแอบเข้าถึงเฟรมที่ถูกเอาไปให้คนอื่นใช้แล้วได้"
+  },
+  {
+    page: 14,
+    group: "demand",
+    title: "How Do We Know If Page Has Been Modified? (บิตจดบันทึก Dirty Bit และ Use Bit)",
+    summary: "ในแต่ละ Page Table Entry (PTE) จะมีบิตจดบันทึก (Bookkeeping bits): 1) บิต Modified (Dirty bit) บอกว่าหน้านี้ถูกแก้ไขหรือไม่ ฮาร์ดแวร์จะเซตเป็น 1 อัตโนมัติเมื่อรันคำสั่ง store (ทั้งใน TLB และ PTE) 2) บิต Recently used (Use/Reference bit) บอกว่าหน้านี้เพิ่งถูกใช้หรือไม่ ฮาร์ดแวร์จะเซตใน PTE ทุกครั้งที่เกิด TLB miss โดย OS Kernel สามารถรีเซ็ตบิตเหล่านี้กลับเป็น 0 ได้เมื่อเขียนลงดิสก์เสร็จ หรือเพื่อเช็คการใช้งานล่าสุด",
+    visual: "🏷️ Bookkeeping Bits ใน PTE:\n• Dirty (Modified) Bit: เซตโดยฮาร์ดแวร์เมื่อสั่ง Store (เขียนข้อมูล)\n• Use (Reference) Bit: เซตโดยฮาร์ดแวร์เมื่อมีการอ้างอิง (เช่น ตอน TLB miss)",
+    keyPoint: "Dirty bit ช่วยให้ไม่ต้องเสียเวลาเขียนหน้าเดิมกลับลงดิสก์ถ้าหน้านั้นถูกอ่านอย่างเดียว (Clean page)"
+  },
+  {
+    page: 15,
+    group: "demand",
+    title: "Keeping Track of Page Modifications - Before (แผนภาพก่อนเขียนแก้ไขหน้า A)",
+    summary: "แสดงสถานะก่อนมีการเขียนแก้ไขข้อมูลใน Virtual Page A: ทั้งใน TLB และใน Page Table ช่องของ Virtual Page A มีสิทธิ์เป็น R/W และช่อง 'Dirty' ยังเป็น 'No' (ยังไม่มีการแก้ไข ข้อมูลใน RAM ยังตรงกับ Old Page A บน Disk)",
+    visual: "ก่อนสั่ง Store ลง Page A:\nTLB: [Frame A | R/W | Dirty = No]  <══>  Page Table: [Frame A | R/W | Dirty = No]",
+    keyPoint: "หาก Page A ถูกไล่ที่ในจังหวะนี้ OS ไม่ต้องเขียนกลับลงดิสก์เลย เพราะ Dirty = No"
+  },
+  {
+    page: 16,
+    group: "demand",
+    title: "Keeping Track of Page Modifications - After (แผนภาพหลังเขียนแก้ไขหน้า A)",
+    summary: "เมื่อโปรเซสรันคำสั่งเขียนข้อมูลลงใน Virtual Page A: ข้อมูลใน Physical Memory กลายเป็น 'New Page A' (ไม่ตรงกับ Old Page A บน Disk แล้ว) ฮาร์ดแวร์จึงเปลี่ยนช่อง 'Dirty' ทั้งใน TLB และใน Page Table ของ Virtual Page A ให้กลายเป็น 'Yes' ทันที",
+    visual: "หลังสั่ง Store ลง Page A:\nTLB: [Frame A | R/W | Dirty = Yes] <══> Page Table: [Frame A | R/W | Dirty = Yes] ──> RAM [New Page A]",
+    keyPoint: "เมื่อ Dirty = Yes หากในอนาคต Page A ถูกเลือกให้ไล่ที่ (Evict) OS จะรู้ทันทีว่าต้องเขียน New Page A กลับลง Disk ก่อน"
+  },
+  {
+    page: 17,
+    group: "demand",
+    title: "Virtual or Physical Dirty/Use Bits & Core Map (การเก็บสถานะเมื่อมีการแชร์หน้า)",
+    summary: "เครื่องส่วนใหญ่มักเก็บบิต Dirty/Use ไว้ใน Page Table Entry (ฝั่ง Virtual) ดังนั้นถ้ามีหลายโปรเซสแชร์ Physical Page เดียวกัน จะถือว่า Physical Page นั้นถูกแก้ไข (Modified) ถ้ามี PTE 'ตัวใดตัวหนึ่ง' ที่ชี้มามีค่าเป็น Modified และถือว่าเพิ่งถูกใช้ (Recently used) ถ้ามี PTE 'ตัวใดตัวหนึ่ง' เพิ่งถูกใช้ ส่วนในสถาปัตยกรรม MIPS จะเก็บ Dirty/Use bits ไว้ใน Core map (ตารางของ Physical page frames) ซึ่งจัดการได้ง่ายกว่า",
+    visual: "🔗 กรณีแชร์หน้า: Physical Page จะเป็น Dirty/Used ถ้ารายการ PTE อย่างน้อย 1 ตัวที่ชี้มาเป็น Dirty/Used\n🗺️ Core Map (เช่นใน MIPS): ตารางที่เก็บข้อมูลย้อนกลับของแต่ละ Physical Frame โดยตรง",
+    keyPoint: "Core map คือโครงสร้างข้อมูลสำคัญใน OS ที่ใช้ติดตามสถานะของแต่ละ Physical Frame"
+  },
+  {
+    page: 18,
+    group: "mmap",
+    title: "Models for Application File I/O (เปรียบเทียบ 2 โมเดลในการอ่าน/เขียนไฟล์)",
+    summary: "เปรียบเทียบ 2 วิธี: 1) Explicit read/write system calls: ต้องใช้ System call ก๊อปปี้ข้อมูลจาก Kernel มาลงบัฟเฟอร์ของ User process เพื่อประมวลผล แล้วใช้ System call ก๊อปปี้กลับไปให้ Kernel 2) Memory-mapped files: เปิดไฟล์ให้กลายเป็น Memory segment ของโปรแกรม แล้วใช้คำสั่ง CPU ปกติ (load/store) อ่านเขียนหน่วยความจำนั้นโดยตรง หากส่วนใดของไฟล์ยังไม่อยู่ใน RAM จะเกิด Page fault แล้ว Kernel จะดึงบล็อกนั้นจากดิสก์เข้ามาให้โดยอัตโนมัติ",
+    visual: "📁 วิธีที่ 1 (System Call): Disk ➔ Kernel Buffer ──(Copy)──> User Buffer (เสียเวลา Copy 2 ต่อ)\n🚀 วิธีที่ 2 (Memory-mapped File): เปิดไฟล์เป็น Segment ➔ ใช้คำสั่ง load/store ตรงๆ (ใช้กลไก Page Fault ดึงข้อมูล)",
+    keyPoint: "Memory-mapped files เปลี่ยนเรื่อง File I/O ให้กลายเป็นเรื่องการเข้าถึงหน่วยความจำผ่าน Demand Paging"
+  },
+  {
+    page: 19,
+    group: "mmap",
+    title: "Advantages to Memory-mapped Files (ข้อดี 4 ประการของไฟล์แบบแมปเข้าหน่วยความจำ)",
+    summary: "ข้อดี 4 ข้อของ Memory-mapped files: 1) Programming simplicity (เขียนโปรแกรมง่ายมาก โดยเฉพาะกับไฟล์ขนาดใหญ่ เพราะจัดการเหมือนตัวแปร/อาร์เรย์ในหน่วยความจำ ไม่ต้องสั่ง copy in/out) 2) Zero-copy I/O (ดึงข้อมูลจากดิสก์เข้าสู่ Page frame ที่โปรเซสใช้งานโดยตรง ไม่ต้องก๊อปปี้ผ่านบัฟเฟอร์ตัวกลาง) 3) Pipelining (โปรเซสเริ่มทำงานได้ทันทีโดยไม่ต้องรอให้โหลดไฟล์ครบทุกหน้า) 4) Interprocess communication (ใช้แชร์หน่วยความจำสื่อสารระหว่างโปรเซสได้ดีกว่าการใช้ไฟล์ชั่วคราว)",
+    visual: "🌟 4 ข้อดีเด่น: เขียนโค้ดง่าย (Simplicity) | ไม่เสียเวลาก๊อปปี้ซ้ำ (Zero-copy I/O) | ทำงานขนานไม่ต้องรอโหลดครบ (Pipelining) | สื่อสารข้ามโปรเซส (IPC)",
+    keyPoint: "เชื่อมโยงกลับไปยังประโยชน์ของ Address Translation ในบทที่ 7 หน้า 35–36 ได้อย่างสมบูรณ์"
+  },
+  {
+    page: 20,
+    group: "replacement",
+    title: "Cache Replacement Policy (นโยบายการเลือกแทนที่ข้อมูลเมื่อเกิด Miss)",
+    summary: "เมื่อเกิด Cache Miss (หรือ Page Fault เมื่อ RAM เต็ม) เราจะเลือกแทนที่รายการไหนดี? (ภายใต้สมมติฐานว่ารายการใหม่ที่เพิ่งดึงเข้ามามีโอกาสถูกใช้งานในอนาคตอันใกล้มากกว่า และใน Direct mapped cache ไม่ต้องเลือกเพราะมีช่องตายตัว) เป้าหมายของนโยบาย (Policy goal) คือ: ลดจำนวนการเกิด Cache misses เพื่อเพิ่มประสิทธิภาพโดยเฉลี่ย และลดโอกาสที่จะเกิดพฤติกรรมแย่สุดขีด (Worst-case performance)",
+    visual: "🎯 เป้าหมาย Page Replacement: ลดจำนวน Miss เฉลี่ย + ป้องกันกรณีเลวร้ายสุดขีด (หมายเหตุ: Direct-mapped ไม่ต้องเลือกเพราะล็อกช่องตายตัว)",
+    keyPoint: "การเลือกหน้าที่จะไล่ที่ผิดพลาด จะทำให้เกิด Page Fault ซ้ำซาก (Thrashing) ซึ่งช้ามากเพราะดิสก์ใช้เวลาถึง 10 ms"
+  },
+  {
+    page: 21,
+    group: "replacement",
+    title: "A Simple Policy: Random & FIFO (นโยบายพื้นฐานแบบสุ่มและแบบเข้าก่อนออกก่อน)",
+    summary: "แนะนำ 2 นโยบายที่เข้าใจง่ายที่สุด: 1) Random คือสุ่มเลือกรายการที่จะถูกแทนที่ไปเลย 2) FIFO (First-In, First-Out) คือเลือกแทนที่รายการที่เข้ามาอยู่ในแคชเป็นเวลานานที่สุด (เก่าแก่ที่สุดตามเวลาที่เข้ามา) พร้อมตั้งคำถามว่า FIFO อาจเกิดปัญหาอะไรขึ้นได้?",
+    visual: "🎲 Random: สุ่มหยิบออก 1 หน้า\n🚶‍♂️ FIFO: หน้าไหนเข้ามาอยู่ใน RAM นานที่สุด เอาหน้านั้นออกก่อน (ไม่สนว่าเพิ่งถูกเรียกใช้หรือไม่!)",
+    keyPoint: "จุดอ่อนของ FIFO คือดูแค่ 'เวลาที่เข้ามาครั้งแรก' โดยไม่สนใจเลยว่าหน้านั้นถูกใช้งานบ่อยแค่ไหน"
+  },
+  {
+    page: 22,
+    group: "replacement",
+    title: "FIFO in Action (ตัวอย่างกรณีเลวร้ายที่สุดของ FIFO เมื่อวนลูปเกินขนาดแคช)",
+    summary: "ตารางจำลองแคชขนาด 4 ช่อง กับลำดับการอ้างอิง A B C D E A B C D E A B C D E (วนลูป 5 หน้า แต่แคชมี 4 ช่อง): เมื่อใช้ FIFO จะพบว่าเกิด Miss ทุกครั้งรวด (15 ครั้งเกิด Miss ทั้ง 15 ครั้ง ไม่มี Hit เลย!) เพราะหน้าที่จะต้องใช้ในก้าวถัดไปเพิ่งถูก FIFO ไล่ออกไปในก้าวก่อนหน้าเสมอ สรุปว่ากรณีเลวร้ายสุดของ FIFO คือเมื่อโปรแกรมเดินวน (Stride) ผ่านหน่วยความจำที่มีขนาดใหญ่กว่าแคช",
+    visual: "💥 ลำดับ: A B C D E A B C D E... บนแคช 4 ช่อง\nพอ E เข้ามา ➔ ไล่ A ออก! ➔ ก้าวถัดไปเรียก A พอดี ➔ ไล่ B ออก! ➔ Miss 100% ทุกก้าว!",
+    keyPoint: "คุณสามารถกดรันตัวอย่างนี้ดูทีละก้าวได้ในแท็บ Interactive Simulator ของเว็บไซต์นี้"
+  },
+  {
+    page: 23,
+    group: "replacement",
+    title: "MIN, LRU, LFU (อัลกอริทึมการแทนที่ระดับแนวหน้าทั้ง 3 แบบ)",
+    summary: "อธิบาย 3 นโยบายหลัก: 1) MIN (Optimal / Belady's Algorithm): แทนที่หน้าที่ 'จะไม่ถูกใช้อีกเลยเป็นเวลานานที่สุดในอนาคต' ให้ผลดีที่สุดเสมอ (พิสูจน์ด้วยวิธีสลับแลกเปลี่ยน/Exchange argument ว่าถ้าไล่ตัวที่จะใช้เร็วกว่าออก จะทำให้เกิด Miss เร็วขึ้น) 2) LRU (Least Recently Used): แทนที่หน้าที่ 'ไม่ได้ถูกใช้งานมานานที่สุดในอดีต' ซึ่งเป็นการประมาณค่าของ MIN โดยอาศัยอดีตทำนายอนาคต 3) LFU (Least Frequently Used): แทนที่หน้าที่ถูกเรียกใช้น้อยครั้งที่สุดในช่วงที่ผ่านมา",
+    visual: "🔮 MIN (Optimal): มองไปในอนาคต ➔ ไล่ตัวที่จะใช้ช้าที่สุดออก (ดีที่สุดแต่ต้องรู้อนาคต)\n⏪ LRU: มองย้อนไปในอดีต ➔ ไล่ตัวที่ไม่ได้ใช้นานที่สุดออก (ใช้ประมาณค่า MIN ในโลกจริง)\n📊 LFU: นับความถี่ ➔ ไล่ตัวที่ถูกใช้น้อยครั้งที่สุดออก",
+    keyPoint: "MIN ใช้เป็นเกณฑ์มาตรฐานสูงสุด (Upper bound) ในการวัดประสิทธิภาพ ส่วน LRU เป็นวิธีที่นิยมนำไปใช้งานหรือประมาณค่าในระบบจริง"
+  },
+  {
+    page: 24,
+    group: "replacement",
+    title: "LRU/MIN for Sequential Scan (เปรียบเทียบ LRU กับ MIN เมื่อเกิดการสแกนเรียงลำดับ)",
+    summary: "ตารางเปรียบเทียบลำดับการสแกนวนลูป A B C D E A B C D E A B C D E บนแคช 4 ช่อง: ฝั่ง LRU ให้ผลลัพธ์เหมือน FIFO ทุกประการ คือเกิด Miss 100% ทุกครั้ง! แต่ฝั่ง MIN (ซึ่งรู้อนาคต) เมื่อ E เข้ามาในก้าวที่ 5 จะเลือกไล่ D ออก (เพราะ A,B,C จะถูกใช้ก่อน D) ทำให้ก้าวที่เรียก A, B, C เกิดเครื่องหมาย '+' (Hit!) ติดต่อกันหลายครั้ง",
+    visual: "📊 Sequential Scan (A B C D E วนซ้ำบนแคช 4 ช่อง):\n• LRU: พังเหมือน FIFO (0 Hits, 15 Misses)\n• MIN: ไล่ตัวที่จะใช้ไกลสุดออก ทำให้เกิด Hit (+) ถึง 7 ครั้ง!",
+    keyPoint: "เป็นจุดอ่อนสำคัญของ LRU: สำหรับรูปแบบ Sequential Scan ที่ใหญ่กว่าแคชเล็กน้อย LRU จะทำงานได้แย่ที่สุด แต่ MIN ยังรับมือได้ดี"
+  },
+  {
+    page: 25,
+    group: "replacement",
+    title: "Comparison of LRU, FIFO, and MIN on Locality Workload (ตารางเปรียบเทียบเมื่อมี Locality)",
+    summary: "ตารางเปรียบเทียบลำดับ A B A C B D A D E D A E B A C บนแคช 4 ช่อง (เป็นโหลดงานที่มี Locality สมจริง): MIN เกิด Hit ('+') มากที่สุดคือ 8 ครั้ง (Miss 7 ครั้ง), LRU เกิด Hit 7 ครั้ง (Miss 8 ครั้ง ซึ่งใกล้เคียง MIN มาก!), ในขณะที่ FIFO เกิด Hit เพียง 5 ครั้ง (Miss 10 ครั้ง)",
+    visual: "🏆 ผลลัพธ์บนลำดับ A B A C B D A D E D A E B A C (15 ครั้ง, 4 ช่อง):\n• MIN: Hit 8 ครั้ง (ดีที่สุด)\n• LRU: Hit 7 ครั้ง (ชนะ FIFO และใกล้เคียง MIN มาก)\n• FIFO: Hit 5 ครั้ง (แย่ที่สุดใน 3 วิธีนี้)",
+    keyPoint: "พิสูจน์ว่าเมื่อโปรแกรมมี Temporal Locality ตามปกติ LRU จะสามารถประมาณค่าใกล้เคียงกับ MIN ได้ดีเยี่ยมและชนะ FIFO อย่างชัดเจน"
+  },
+  {
+    page: 26,
+    group: "replacement",
+    title: "Belady's Anomaly (ความผิดปกติของเบลาดี้ในอัลกอริทึม FIFO)",
+    summary: "แสดงตารางเปรียบเทียบลำดับ A B C D A B E A B C D E (12 ครั้ง) ด้วยวิธี FIFO: เมื่อใช้แคช 3 ช่อง (3 slots) เกิด Hit ('+') 3 ครั้ง (คือเกิด Miss 9 ครั้ง) แต่เมื่อเพิ่มขนาดแคชเป็น 4 ช่อง (4 slots) กลับเกิด Hit ('+') เพียง 2 ครั้ง (คือเกิด Miss เพิ่มขึ้นเป็น 10 ครั้ง!) ปรากฏการณ์ที่การเพิ่มจำนวนเฟรมหน่วยความจำแล้วกลับทำให้เกิด Page Fault มากขึ้นใน FIFO นี้เรียกว่า Belady's Anomaly",
+    visual: "🤯 Belady's Anomaly บนลำดับ A B C D A B E A B C D E:\n• FIFO (3 ช่อง): เกิด Miss 9 ครั้ง (Hit 3 ครั้ง)\n• FIFO (4 ช่อง): เกิด Miss 10 ครั้ง (Hit ลดเหลือ 2 ครั้ง!) ➔ เพิ่ม RAM แต่กลับช้าลง!",
+    keyPoint: "อัลกอริทึมแบบ Stack เช่น LRU และ MIN จะไม่มีวันเกิด Belady's Anomaly เด็ดขาด เพราะเซตของหน้าในแคชขนาด k จะเป็นสับเซตของแคชขนาด k+1 เสมอ"
+  },
+  {
+    page: 27,
+    group: "replacement",
+    title: "Recap (สรุปส่งท้ายบทที่ 8: MIN, LRU และ Clock/Nth Chance)",
+    summary: "สรุปใจความสำคัญ 3 ข้อสุดท้าย: 1) MIN คือวิธีที่ดีที่สุด (Optimal) โดยแทนที่หน้าที่จะถูกใช้ไกลที่สุดในอนาคต 2) LRU คือการประมาณค่าของ MIN ที่ทำงานได้ดีมากสำหรับโปรแกรมที่มีสมบัติ Spatial และ Temporal locality 3) Clock / Nth Chance คือการประมาณค่าของ LRU อีกต่อหนึ่งเพื่อใช้ในระบบจริง โดยจัดกลุ่มหน้าออกเป็นเซตของหน้าที่ 'ไม่ได้เพิ่งถูกใช้ (not recently used)' ด้วยการวนเช็ค Use bit",
+    visual: "🎯 สรุปความสัมพันธ์: [MIN (อุดมคติ)] <──ประมาณด้วย── [LRU (แม่นยำแต่ต้นทุนสูง)] <──ประมาณด้วย── [Clock / Nth Chance (ใช้จริงใน OS)]",
+    keyPoint: "เพราะการทำ Exact LRU ในฮาร์ดแวร์ทุกครั้งที่อ้างอิงหน่วยความจำมีต้นทุนสูงเกินไป OS จริงจึงใช้ Clock / Nth Chance ร่วมกับ Use bit แทน"
+  }
+];
+
+const quizQuestions = [
+  {
+    id: 1,
+    chapter: 7,
+    q: "1. ในแนวคิดพื้นฐานของ Address Translation เมื่อ Processor ส่ง Virtual Address เข้าสู่กลไกการแปลงที่อยู่ หากรหัสที่อยู่นั้นมีสถานะเป็น 'Invalid' ระบบจะดำเนินการอย่างไร?",
+    options: [
+      "ก. ส่งค่า 0 กลับไปยัง Processor ทันทีโดยไม่เข้าถึงหน่วยความจำ",
+      "ข. ทำการโยน Exception (Raise Exception) เพื่อให้ระบบปฏิบัติการเข้ามาจัดการ",
+      "ค. รีเซ็ตค่ารีจิสเตอร์ Base ให้กลับเป็น 0 โดยอัตโนมัติ",
+      "ง. ข้ามไปอ่านคำสั่งถัดไปใน Physical Memory ทันที"
+    ],
+    answer: 1,
+    explanation: "ตามแผนภาพในบทที่ 7 หน้า 3 หากผลการตรวจสอบที่อยู่เป็น Invalid ฮาร์ดแวร์จะสั่ง Raise Exception (เกิด Trap เข้าสู่ OS Kernel) ทันทีเพื่อปกป้องหน่วยความจำหรือจัดการฟีเจอร์พิเศษ"
+  },
+  {
+    id: 2,
+    chapter: 7,
+    q: "2. ข้อใดไม่ใช่เป้าหมายหลัก 4 ประการ (Address Translation Goals) ที่ระบุไว้ในบทที่ 7 หน้า 4?",
+    options: [
+      "ก. Memory protection (การป้องกันหน่วยความจำระหว่างโปรเซส)",
+      "ข. Memory sharing (การแชร์หน่วยความจำ เช่น Shared libraries และ IPC)",
+      "ค. CPU Clock Overclocking (การเพิ่มความถี่สัญญาณนาฬิกาของซีพียู)",
+      "ง. Sparse addresses (การรองรับพื้นที่แอดเดรสที่เว้นว่างหลายส่วน เช่น Heap/Stack)"
+    ],
+    answer: 2,
+    explanation: "ในหน้า 4 เป้าหมายหลัก 4 ข้อคือ 1) Memory protection 2) Memory sharing 3) Sparse addresses และ 4) Efficiency (Memory placement, Runtime lookup, Compact translation tables) ไม่เกี่ยวกับการ Overclock ซีพียู"
+  },
+  {
+    id: 3,
+    chapter: 7,
+    q: "3. ฟีเจอร์ใดต่อไปนี้เกิดจากการที่ระบบปฏิบัติการสามารถดักจับและเข้าควบคุม (Gain control via Trap) เมื่อโปรแกรมอ่านหรือเขียนตำแหน่งหน่วยความจำเสมือนที่กำหนด (หน้า 5)?",
+    options: [
+      "ก. Copy on write และ Demand paging",
+      "ข. การเพิ่มขนาด L1 Cache ในฮาร์ดแวร์",
+      "ค. การต่อวงจร Adder ในระบบ Base and Bounds",
+      "ง. การใช้ Direct Mapped Cache แทน Fully Associative Cache"
+    ],
+    answer: 0,
+    explanation: "ในบทที่ 7 หน้า 5 (และบทที่ 8 หน้า 9) ระบุตัวอย่างชัดเจนว่าเมื่อดักจับการอ่าน/เขียนได้ จะทำ Copy on write, Fill on demand, Demand paging และ Memory mapped files ได้"
+  },
+  {
+    id: 4,
+    chapter: 7,
+    q: "4. ในระบบ Virtually Addressed Base and Bounds (หน้า 7) ฮาร์ดแวร์คำนวณหา Physical Address และตรวจสอบสิทธิ์อย่างไร?",
+    options: [
+      "ก. Physical Address = Virtual Address - Base และเช็คว่า Virtual Address < Base",
+      "ข. Physical Address = Base + Virtual Address และโยน Exception เมื่อ Virtual Address เกินขอบเขต Bound",
+      "ค. Physical Address = Base × Bound และโยน Exception เมื่อ Virtual Address เป็นเลขคี่",
+      "ง. นำเลข Virtual Address ไปต่อท้ายค่า Base โดยไม่ต้องบวกเลข"
+    ],
+    answer: 1,
+    explanation: "ตามวงจรในหน้า 7 ฮาร์ดแวร์ใช้วงจรบวก (+) เพื่อคำนวณ Physical Address = Base + Virtual Address และใช้วงจรเปรียบเทียบ (>) กับค่า Bound เพื่อโยน Exception หากเกินขอบเขต"
+  },
+  {
+    id: 5,
+    chapter: 7,
+    q: "5. ข้อใดคือข้อเสียสำคัญ (Cons) ของระบบ Base and Bounds ตามที่สรุปไว้ในหน้า 9?",
+    options: [
+      "ก. วงจรฮาร์ดแวร์ซับซ้อนมากและทำงานช้าที่สุด",
+      "ข. ไม่สามารถย้ายตำแหน่งโปรเซสในหน่วยความจำจริง (Relocate) ได้เลย",
+      "ค. ไม่สามารถป้องกันโปรแกรมเขียนทับโค้ดตัวเองได้ ไม่สามารถแชร์โค้ดกับโปรเซสอื่น และขยาย Stack/Heap ได้ยาก",
+      "ง. ต้องใช้ตารางหลายระดับที่กินพื้นที่หน่วยความจำขนาดใหญ่"
+    ],
+    answer: 2,
+    explanation: "ในหน้า 9 ระบุข้อเสียของ Base and Bounds ไว้ 3 ข้อคือ: ป้องกันโปรแกรมเผลอเขียนทับโค้ดตัวเองไม่ได้, แชร์โค้ด/ข้อมูลกับโปรเซสอื่นไม่ได้ และขยายขนาด Stack/Heap ตามต้องการไม่ได้"
+  },
+  {
+    id: 6,
+    chapter: 7,
+    q: "6. ในระบบ Segmentation (หน้า 11–12) แต่ละแถวของ Segment Table เก็บข้อมูลสำคัญอะไรบ้าง?",
+    options: [
+      "ก. เก็บเฉพาะหมายเลข Physical Frame เพียงอย่างเดียว",
+      "ข. เก็บจุดเริ่มต้น (Start/Base), ความยาว (Length/Bound) และสิทธิ์การเข้าถึง (Access permission)",
+      "ค. เก็บเฉพาะค่า Bitmap ของหน่วยความจำทั้งหมด",
+      "ง. เก็บเฉพาะเวลาที่เข้ามาครั้งแรกสำหรับทำ FIFO"
+    ],
+    answer: 1,
+    explanation: "ตามหน้า 11–12 แต่ละ Segment มี Start (Base), Length (Bound) และ Access permission (เช่น Read หรือ R/W) เก็บอยู่ใน Segment Table ของแต่ละโปรเซส"
+  },
+  {
+    id: 7,
+    chapter: 7,
+    q: "7. จากตัวอย่าง Segmentation ในหน้า 13 (ใช้ 2-bit segment # และ 12-bit offset) กำหนดให้ Code segment (Seg 0) มี start = 0x4000, length = 0x700 และ Data segment (Seg 1) มี start = 0, length = 0x500 อยากทราบว่าคำสั่งที่ Virtual Address 0x0360 (strlen) จะถูกแปลงเป็น Physical Address ใด?",
+    options: [
+      "ก. 0x0360",
+      "ข. 0x1360",
+      "ค. 0x2360",
+      "ง. 0x4360"
+    ],
+    answer: 3,
+    explanation: "Virtual Address 0x0360 มีเลข Segment = 0 (Code segment ซึ่งมี start = 0x4000) และมี Offset = 0x360 (ซึ่งน้อยกว่า length 0x700) ดังนั้น Physical Address = 0x4000 + 0x360 = 0x4360 ดังแสดงในตารางหน้า 13"
+  },
+  {
+    id: 8,
+    chapter: 7,
+    q: "8. จากโจทย์ข้อที่แล้ว (หน้า 13) ตัวแปร x ซึ่งอยู่ที่ Virtual Address 0x1108 จะถูกแปลงเป็น Physical Address ใด?",
+    options: [
+      "ก. 0x0108",
+      "ข. 0x1108",
+      "ค. 0x4108",
+      "ง. เกิด Exception เนื่องจากเกินความยาวของ Data segment"
+    ],
+    answer: 0,
+    explanation: "Virtual Address 0x1108 ในระบบ 2-bit segment # + 12-bit offset มีเลข Segment = 1 (Data segment ซึ่งมี start = 0 และ length = 0x500) และมี Offset = 0x108 ดังนั้น Physical Address = 0 + 0x108 = 0x0108 (ตรงกับ x: 108 ในตารางฝั่งขวาของหน้า 13)"
+  },
+  {
+    id: 9,
+    chapter: 7,
+    q: "9. โปรเซส 2 โปรเซสสามารถแชร์ Code Segment ร่วมกันในระบบ Segmentation (หน้า 14) ได้อย่างไร?",
+    options: [
+      "ก. ต้องรวมตาราง Segment Table ของทั้งสองโปรเซสให้เป็นตารางเดียวกันทั้งหมด",
+      "ข. ตั้งค่าช่อง Code ใน Segment Table ของทั้งสองโปรเซสให้ชี้ไปยัง Base และ Bound เดียวกัน โดยกำหนดสิทธิ์เป็น Read",
+      "ค. ก๊อปปี้โค้ดออกเป็น 2 ชุดวางเรียงติดกันใน Physical Memory",
+      "ง. ใช้รีจิสเตอร์ Base ตัวเดียวกันสำหรับทุกเซกเมนต์ของทั้งสองโปรเซส"
+    ],
+    answer: 1,
+    explanation: "ในหน้า 11 และ 14 แสดงให้เห็นว่าแต่ละโปรเซสมี Segment Table ของตัวเอง แต่ช่อง Code ของทั้งคู่สามารถกำหนดค่า Base และ Bound ให้ชี้ไปยังก้อน Physical Memory เดียวกัน (P1's + P2's Code) พร้อมสิทธิ์ Read-only ได้"
+  },
+  {
+    id: 10,
+    chapter: 7,
+    q: "10. ข้อเสียสำคัญที่สุดของ Segmentation ที่นำไปสู่การคิดค้น Paging คือข้อใด (หน้า 16)?",
+    options: [
+      "ก. ไม่สามารถป้องกันการเขียนทับ Code Segment ได้",
+      "ข. ไม่สามารถแชร์ข้อมูลระหว่างโปรเซสได้",
+      "ค. การจัดการหน่วยความจำซับซ้อนและเกิดปัญหา External fragmentation (พื้นที่ว่างเป็นเศษเล็กเศษน้อยระหว่างเซกเมนต์)",
+      "ง. ขนาดของ Offset ต้องเท่ากับ 4KB เสมอ"
+    ],
+    answer: 2,
+    explanation: "ในหน้า 16 ระบุชัดเจนว่าข้อเสียของ Segmentation คือ Complex memory management (ต้องหาช่องว่างขนาดเฉพาะเจาะจง อาจต้องจัดเรียงหน่วยความจำใหม่) และเกิด External fragmentation (wasted space between chunks)"
+  },
+  {
+    id: 11,
+    chapter: 7,
+    q: "11. ในระบบ Paged Translation (หน้า 18) เหตุใดการค้นหาหน้าว่าง (Finding a free page) จึงทำได้ง่ายมาก?",
+    options: [
+      "ก. เพราะทุกหน้ามีขนาดคงที่เท่ากันหมด จึงใช้ Bitmap allocation ที่ 1 บิตแทนสถานะของ 1 Physical page frame ได้ทันที",
+      "ข. เพราะไม่ต้องใช้ตาราง Page Table ในการเก็บข้อมูล",
+      "ค. เพราะทุกหน้าของโปรเซสต้องวางเรียงติดกันใน Physical Memory เสมอ",
+      "ง. เพราะฮาร์ดแวร์ลบข้อมูลใน RAM ทิ้งทุกๆ 1 วินาที"
+    ],
+    answer: 0,
+    explanation: "ในหน้า 18 อธิบายว่า Paging จัดการหน่วยความจำเป็นหน่วยขนาดคงที่ (Fixed size units) ทำให้หาหน้าว่างได้ง่ายโดยใช้ Bitmap allocation เช่น 0011111100000001100 ซึ่ง 1 บิตแทน 1 physical page frame"
+  },
+  {
+    id: 12,
+    chapter: 7,
+    q: "12. ในระบบ Paged Translation (หน้า 20) เมื่อฮาร์ดแวร์ใช้เลข Page # ไปเปิด Page Table จนได้หมายเลข Physical Frame ออกมาแล้ว จะสร้าง Physical Address อย่างไร?",
+    options: [
+      "ก. นำหมายเลข Frame ไปคูณกับ Offset",
+      "ข. นำหมายเลข Frame มาวางต่อกับค่า Offset เดิมโดยตรง ([Frame | Offset])",
+      "ค. นำหมายเลข Frame ไปลบออกจากค่า Offset",
+      "ง. นำค่า Offset ไปเปิดค้นในตาราง Page Table อีกรอบ"
+    ],
+    answer: 1,
+    explanation: "ตามแผนภาพหน้า 20 ค่า Offset จาก Virtual Address จะถูกลากลงมาต่อท้ายหมายเลข Frame โดยตรงเป็น [Frame | Offset] โดยไม่ต้องบวกเลข เพราะขนาดของ Page เป็นเลขฐานสองยกกำลัง"
+  },
+  {
+    id: 13,
+    chapter: 7,
+    q: "13. จากตัวอย่างในหน้า 21 ที่ Process View มี 3 หน้า (หน้าละ 4 ตัวอักษร: หน้า 0 คือ A–D, หน้า 1 คือ E–H, หน้า 2 คือ I–L) และมี Page Table เก็บค่า [4, 3, 1] ตัวอักษร 'F' ซึ่งอยู่ในหน้า 1 ลำดับที่ 2 (Offset = 1) จะไปปรากฏอยู่ใน Physical Memory ที่ Frame ใด?",
+    options: [
+      "ก. Frame 0",
+      "ข. Frame 1",
+      "ค. Frame 3",
+      "ง. Frame 4"
+    ],
+    answer: 2,
+    explanation: "ตัวอักษร E, F, G, H อยู่ใน Virtual Page 1 เมื่อดูที่ Page Table ช่องที่ 1 (ช่องกลางจาก [4, 3, 1]) จะมีค่าเท่ากับ 3 ดังนั้นกลุ่ม E, F, G, H จึงถูกแมปไปอยู่ที่ Physical Frame 3"
+  },
+  {
+    id: 14,
+    chapter: 7,
+    q: "14. ปัญหาใหญ่ของการใช้ Paging แบบตารางชั้นเดียวกับ Sparse Address Space ขนาดใหญ่ (เช่น ระบบ 64-bit ในหน้า 23) คืออะไร?",
+    options: [
+      "ก. เกิด External fragmentation ระหว่างเพจ",
+      "ข. ตาราง Page Table จะมีจำนวนรายการมหาศาล (เช่น 4 quadrillion entries ใน 64-bit) แม้โปรเซสจะใช้หน่วยความจำจริงเพียงนิดเดียว",
+      "ค. ไม่สามารถกำหนดสิทธิ์ Read/Write ให้แต่ละเพจได้",
+      "ง. ไม่สามารถทำงานร่วมกับระบบดิสก์ได้"
+    ],
+    answer: 1,
+    explanation: "ในหน้า 23 ชี้ให้เห็นว่าถ้า Virtual Address Space มีขนาดใหญ่ เช่น 32-bit ต้องใช้ ~500K-1M entries และ 64-bit ต้องใช้ถึง 4 quadrillion page table entries ซึ่งสิ้นเปลืองพื้นที่เก็บตารางอย่างมากเมื่อที่อยู่ส่วนใหญ่ว่างเปล่า (Sparse)"
+  },
+  {
+    id: 15,
+    chapter: 7,
+    q: "15. ในระบบ Paged Segmentation (หน้า 26–27) ข้อมูลที่เก็บอยู่ในแต่ละช่องของ Segment Table Entry คืออะไร?",
+    options: [
+      "ก. ที่อยู่จริงของข้อมูลใน Physical Memory โดยตรง",
+      "ข. Pointer ที่ชี้ไปยัง Page Table ของเซกเมนต์นั้น, ความยาวของ Page Table (# of pages in segment) และ Access permissions",
+      "ค. ค่า Dirty bit และ Use bit ของทุกหน้าในระบบ",
+      "ง. รายชื่อไฟล์ทั้งหมดที่อยู่ในฮาร์ดดิสก์"
+    ],
+    answer: 1,
+    explanation: "ตามหน้า 26 ในระบบ Paged Segmentation แต่ละช่องของ Segment table entry จะเก็บ: 1) Pointer to page table 2) Page table length (# of pages in segment) และ 3) Access permissions"
+  },
+  {
+    id: 16,
+    chapter: 7,
+    q: "16. ข้อใดคือข้อดีและข้อเสียของการแปลงที่อยู่แบบหลายระดับ (Multilevel Translation) ตามที่สรุปในหน้า 30?",
+    options: [
+      "ก. ข้อดีคือค้นหาเร็วขึ้นเป็น 1 ครั้งเสมอ / ข้อเสียคือเกิด External fragmentation",
+      "ข. ข้อดีคือจองเฉพาะส่วนของ Page table ที่ใช้งานจริง / ข้อเสียคือต้องค้นหาหน่วยความจำ 2 ครั้งขึ้นไปต่อการอ้างอิง 1 ครั้ง",
+      "ค. ข้อดีคือไม่ต้องใช้ Physical Memory / ข้อเสียคือแชร์ข้อมูลไม่ได้เลย",
+      "ง. ข้อดีคือไม่ต้องใช้ Offset / ข้อเสียคือขนาด Page ไม่คงที่"
+    ],
+    answer: 1,
+    explanation: "ในหน้า 30 ระบุ Pros: จอง/เติมเฉพาะ page table entries ที่ใช้งานจริง, จัดสรรหน่วยความจำง่าย, แชร์ได้ทั้งระดับ segment หรือ page ส่วน Cons: มี Space overhead ของพอยน์เตอร์ และต้องทำ Two (or more) lookups per memory reference"
+  },
+  {
+    id: 17,
+    chapter: 7,
+    q: "17. Translation Lookaside Buffer (TLB) ในหน้า 32–34 ทำหน้าที่อะไร?",
+    options: [
+      "ก. เป็นบัฟเฟอร์พักข้อมูลก่อนเขียนลงฮาร์ดดิสก์แบบจานหมุน",
+      "ข. เป็นแคชความเร็วสูงในฮาร์ดแวร์ที่เก็บผลการแปลง Virtual Page เป็น Physical Page Frame ล่าสุด",
+      "ค. เป็นตารางเก็บรายชื่อโปรเซสทั้งหมดที่รอคิว CPU",
+      "ง. เป็นตัวบีบอัดขนาดไฟล์ก่อนทำ Memory-mapped I/O"
+    ],
+    answer: 1,
+    explanation: "ในหน้า 32 ระบุว่า TLB คือ Cache of recent virtual page -> physical page translations ถ้าเกิด TLB Hit จะได้เลข Frame ทันทีโดยไม่ต้องเดินค้นตารางหลายระดับ (Page table walk)"
+  },
+  {
+    id: 18,
+    chapter: 7,
+    q: "18. จากสูตรในหน้า 32: Cost of translation = Cost of TLB lookup + Prob(TLB miss) × Cost of page table lookup หาก TLB lookup ใช้เวลา 1 ns, การเดินค้น Page table walk ใช้เวลา 100 ns และโอกาสเกิด TLB miss เท่ากับ 1% (0.01) ต้นทุนเวลาเฉลี่ยในการแปลงที่อยู่จะเท่ากับเท่าใด?",
+    options: [
+      "ก. 1.01 ns",
+      "ข. 2.00 ns",
+      "ค. 50.50 ns",
+      "ง. 101.00 ns"
+    ],
+    answer: 1,
+    explanation: "แทนค่าตามสูตรหน้า 32: Cost = 1 ns + (0.01 × 100 ns) = 1 + 1 = 2.00 ns จะเห็นว่าแม้ Page table walk จะช้าถึง 100 ns แต่พอมี TLB ที่ Hit 99% เวลาเฉลี่ยลดลงเหลือเพียง 2 ns เท่านั้น!"
+  },
+  {
+    id: 19,
+    chapter: 7,
+    q: "19. ในแผนภาพ TLB Lookup (หน้า 34) ส่วนใดของ Virtual Address ที่ถูกนำไปเปรียบเทียบค้นหากับรายการใน TLB?",
+    options: [
+      "ก. เฉพาะส่วน Offset เท่านั้น",
+      "ข. เฉพาะส่วนหมายเลขเพจ (Virtual Page #)",
+      "ค. นำค่าข้อมูล (Data) ใน RAM มาเปรียบเทียบ",
+      "ง. นำขนาดของไฟล์บนดิสก์มาเปรียบเทียบ"
+    ],
+    answer: 1,
+    explanation: "ในแผนภาพหน้า 34 ส่วน Page# ของ Virtual Address จะถูกส่งลงไปเปรียบเทียบ (=) กับคอลัมน์ Virtual Page ใน TLB ทุกแถวพร้อมกัน ส่วน Offset จะถูกลากข้ามไปรอต่อท้าย Frame โดยตรง"
+  },
+  {
+    id: 20,
+    chapter: 7,
+    q: "20. ข้อใดคือการประยุกต์ใช้งาน Address Translation ที่ระบุไว้ในหน้า 35–36?",
+    options: [
+      "ก. Process isolation, Shared code segments และ Dynamic memory allocation",
+      "ข. Zero-copy I/O, Memory mapped files และ Demand-paged virtual memory",
+      "ค. Cache management (Page coloring) และ Program debugging (Data breakpoints)",
+      "ง. ถูกทุกข้อที่กล่าวมา"
+    ],
+    answer: 3,
+    explanation: "ทั้ง 3 ตัวเลือกคือรายการประโยชน์ของ Address Translation ที่สรุปไว้ครบถ้วนในหน้า 35 และหน้า 36 ของบทที่ 7"
+  },
+  {
+    id: 21,
+    chapter: 8,
+    q: "21. ตามนิยามในบทที่ 8 หน้า 2 การที่โปรแกรมมีแนวโน้มจะอ้างอิงตำแหน่งหน่วยความจำ 'ที่อยู่ข้างเคียงกัน (Nearby locations)' เช่น การไล่อ่านข้อมูลอาร์เรย์ในลูป เรียกว่าสมบัติใด?",
+    options: [
+      "ก. Temporal locality",
+      "ข. Spatial locality",
+      "ค. Belady's anomaly",
+      "ง. Write-through locality"
+    ],
+    answer: 1,
+    explanation: "ในหน้า 2 นิยามชัดเจนว่า: Temporal locality คือการอ้างอิงตำแหน่งเดิมซ้ำๆ (เช่น คำสั่งในลูป) ส่วน Spatial locality คือการอ้างอิงตำแหน่งใกล้เคียงกัน (nearby locations เช่น ข้อมูลในลูป)"
+  },
+  {
+    id: 22,
+    chapter: 8,
+    q: "22. ข้อแตกต่างระหว่างการเขียนข้อมูลแบบ Write through กับ Write back (บทที่ 8 หน้า 4) คือข้อใด?",
+    options: [
+      "ก. Write through จะเก็บการแก้ไขไว้ในแคชจนกว่าจะถูกไล่ที่ ส่วน Write back จะส่งไปเขียนระดับถัดไปทันที",
+      "ข. Write through จะส่งการแก้ไขไปยังหน่วยเก็บระดับถัดไปทันที ส่วน Write back จะเก็บการแก้ไขไว้ในแคชจนกว่าบล็อกนั้นจะถูกแทนที่ (Replaced)",
+      "ค. Write through ใช้ได้เฉพาะกับฮาร์ดดิสก์ ส่วน Write back ใช้ได้เฉพาะกับรีจิสเตอร์",
+      "ง. ทั้งสองวิธีทำงานเหมือนกันทุกประการ ต่างกันแค่ชื่อเรียก"
+    ],
+    answer: 1,
+    explanation: "ตามหน้า 4: Write through ส่งการเปลี่ยนแปลงไปยังระดับถัดไปทันที (immediately to next level of storage) ส่วน Write back เก็บการเปลี่ยนแปลงไว้ในแคชจนกว่าบล็อกนั้นจะถูกแทนที่ (until cache block is replaced)"
+  },
+  {
+    id: 23,
+    chapter: 8,
+    q: "23. จากตาราง Memory Hierarchy ในบทที่ 8 หน้า 5 เวลาในการเข้าถึง (Hit Cost) ของ 1st level cache/TLB, Memory (DRAM) และ Local disk มีค่าประมาณเท่าใดตามลำดับ?",
+    options: [
+      "ก. 1 ns, 100 ns และ 10 ms",
+      "ข. 100 ns, 10 ms และ 200 s",
+      "ค. 1 ms, 4 ms และ 12 ms",
+      "ง. 10 ns, 10 ns และ 10 ns เท่ากันทั้งหมด"
+    ],
+    answer: 0,
+    explanation: "ตามตารางในหน้า 5: 1st level cache/first level TLB = 1 ns, Memory (DRAM) = 100 ns, และ Local disk = 10 ms (ซึ่งช้ากว่า DRAM ถึง 100,000 เท่า)"
+  },
+  {
+    id: 24,
+    chapter: 8,
+    q: "24. กราฟความสัมพันธ์ระหว่าง Cache Size กับ Hit Rate (บทที่ 8 หน้า 6) แสดงให้เห็นข้อเท็จจริงใด?",
+    options: [
+      "ก. เมื่อเพิ่มขนาดแคช อัตรา Hit Rate จะลดลงเรื่อยๆ",
+      "ข. อัตรา Hit Rate จะเพิ่มขึ้นอย่างรวดเร็วเมื่อเพิ่มขนาดแคชในช่วงแรก แล้วจะเริ่มอิ่มตัวแบนราบเมื่อขนาดแคชครอบคลุม Working Set",
+      "ค. ต้องมีขนาดแคชเท่ากับขนาดฮาร์ดดิสก์เท่านั้นจึงจะได้ Hit Rate เกิน 50%",
+      "ง. ขนาดของแคชไม่มีผลใดๆ ต่ออัตรา Hit Rate เลย"
+    ],
+    answer: 1,
+    explanation: "กราฟในหน้า 6 แสดงเส้นโค้งที่พุ่งขึ้นชันมากในช่วง 0–4 KB (ทะลุ 75–85%) แล้วค่อยๆ แบนราบเมื่อขนาดแคชใหญ่ขึ้นจาก 8 KB ไป 16 KB"
+  },
+  {
+    id: 25,
+    chapter: 8,
+    q: "25. ในระบบ Demand Paging (บทที่ 8 หน้า 10–11) หน้าหน่วยความจำเสมือนที่ข้อมูลจริงยังอยู่บน Disk และยังไม่ได้ถูกโหลดเข้ามาใน Physical Memory จะมีสถานะใน Page Table เป็นอย่างไร?",
+    options: [
+      "ก. ตั้งสถานะ Access เป็น R/W และชี้ไปยัง Frame 0 เสมอ",
+      "ข. ตั้งสถานะเป็น Invalid เพื่อว่าเมื่อโปรแกรมเรียกใช้จะเกิด Page Fault Trap เข้าสู่ Kernel",
+      "ค. ถูกลบชื่อออกจาก Virtual Address Space ของโปรแกรมอย่างถาวร",
+      "ง. ถูกคัดลอกไปเก็บไว้ใน TLB ล่วงหน้าทั้งหมด"
+    ],
+    answer: 1,
+    explanation: "ตามแผนภาพหน้า 10–11 หน้าที่ยังไม่อยู่ใน Physical Memory จะมีสถานะในคอลัมน์ Access ของ Page Table เป็น 'Invalid' เพื่อให้ฮาร์ดแวร์โยน Page Fault เมื่อมีการเข้าถึง"
+  },
+  {
+    id: 26,
+    chapter: 8,
+    q: "26. จากลำดับขั้นตอน 13 ขั้นของ Demand Paging (บทที่ 8 หน้า 12) เมื่อเกิด Page fault และ Trap เข้าสู่ Kernel แล้ว หลังจากที่ดิสก์อ่านข้อมูลเข้าสู่ Page frame เสร็จสิ้น (เกิด Disk interrupt เมื่อ DMA complete ในขั้นที่ 8) ระบบจะต้องทำอะไรต่อไปในขั้นที่ 9 และ 10?",
+    options: [
+      "ก. ลบโปรเซสทิ้งและเริ่มบูตเครื่องใหม่",
+      "ข. ตั้งค่าหน้าในตารางเป็น Valid (ขั้น 9) และสั่งให้โปรเซสกลับมาทำงานต่อที่คำสั่งเดิมที่เกิด Fault (ขั้น 10)",
+      "ค. ตั้งค่าหน้าเป็น Invalid (ขั้น 9) และข้ามคำสั่งที่เกิด Fault ไปทำคำสั่งถัดไป (ขั้น 10)",
+      "ง. เขียนข้อมูลหน้าดังกล่าวกลับลงดิสก์ทันที"
+    ],
+    answer: 1,
+    explanation: "ตามหน้า 12: ขั้นที่ 8 คือ Disk interrupt when DMA complete ➔ ขั้นที่ 9 คือ Mark page as valid ➔ ขั้นที่ 10 คือ Resume process at faulting instruction"
+  },
+  {
+    id: 27,
+    chapter: 8,
+    q: "27. ในขั้นตอน 13 ขั้นของ Demand Paging (หน้า 12) เหตุใดหลังจากสั่ง Resume process at faulting instruction (ขั้นที่ 10) แล้ว จึงเกิด TLB miss (ขั้นที่ 11) และ Page table walk (ขั้นที่ 12) อีกครั้งก่อนรันคำสั่งสำเร็จ?",
+    options: [
+      "ก. เพราะข้อมูลบนดิสก์ถูกลบทิ้งไปแล้ว",
+      "ข. เพราะตอนที่ OS อัปเดต Page Table ให้เป็น Valid ในขั้นที่ 9 รายการแปลที่อยู่นั้นยังไม่ได้ถูกโหลดเข้าไปใน TLB เมื่อรันคำสั่งเดิมซ้ำจึงเกิด TLB miss แล้วเดินค้น Page table เพื่อดึงเข้า TLB",
+      "ค. เพราะฮาร์ดแวร์ทำงานผิดพลาดและต้องรีเซ็ตระบบใหม่",
+      "ง. เพราะต้องรอให้ผู้ใช้กดปุ่มยืนยันบนคีย์บอร์ดก่อน"
+    ],
+    answer: 1,
+    explanation: "เมื่อโปรเซสกลับมาทำงานที่คำสั่งเดิม (ขั้น 10) ซีพียูจะส่ง Virtual Address เดิมไปถาม TLB ซึ่งยังไม่มีรายการนี้ (ขั้น 11 TLB miss) ฮาร์ดแวร์จึงทำ Page table walk (ขั้น 12) ซึ่งคราวนี้พบว่าเป็น Valid แล้ว จึงดึงลง TLB และรันคำสั่งสำเร็จ (ขั้น 13)"
+  },
+  {
+    id: 28,
+    chapter: 8,
+    q: "28. ในการไล่ที่หน้าเก่าเพื่อจัดสรรเฟรมใหม่ (Allocating a Page Frame - หน้า 13) เหตุใดหลังจากตั้งค่า Page Table Entry ของหน้าเก่าเป็น Invalid แล้ว จะต้องลบรายการนั้นออกจาก TLB (Remove any TLB entries) ด้วยเสมอ?",
+    options: [
+      "ก. เพื่อประหยัดพลังงานไฟฟ้าของจอภาพ",
+      "ข. เพราะหากไม่ลบออกจาก TLB โปรเซสอาจเกิด TLB Hit จากสำเนาเก่าที่ค้างอยู่ใน TLB และเข้าถึงเฟรมที่ถูกนำไปให้หน้าอื่นใช้แล้วได้",
+      "ค. เพราะ TLB เก็บได้เพียง 1 รายการเท่านั้น",
+      "ง. เพื่อบังคับให้ฮาร์ดดิสก์หยุดหมุน"
+    ],
+    answer: 1,
+    explanation: "ในหน้า 13 ระบุชัดเจนว่าต้อง Remove any TLB entries (Copies of now invalid page table entry) เพราะ TLB เป็นแคชของ Page Table หากไม่ลบออก ฮาร์ดแวร์จะยังเห็นสำเนาเก่าใน TLB เป็น Hit โดยไม่ไปดู Page Table ที่ถูกเปลี่ยนเป็น Invalid แล้ว"
+  },
+  {
+    id: 29,
+    chapter: 8,
+    q: "29. บิตจดบันทึก (Bookkeeping bits) ใน Page Table Entry ที่เรียกว่า 'Modified bit' หรือ 'Dirty bit' (หน้า 14–16) ถูกตั้งค่าและรีเซ็ตอย่างไร?",
+    options: [
+      "ก. ถูกเซตเป็น 1 โดยฮาร์ดแวร์เมื่อรันคำสั่ง Store (เขียนข้อมูล) และถูกรีเซ็ตโดย OS Kernel เมื่อนำข้อมูลที่แก้ไขเขียนลงดิสก์แล้ว",
+      "ข. ถูกเซตเป็น 1 เมื่ออ่านข้อมูลอย่างเดียว และรีเซ็ตเองทุกๆ 1 มิลลิวินาที",
+      "ค. ผู้เขียนโปรแกรมภาษา C ต้องเขียนโค้ดสั่งเซตค่าบิตนี้ด้วยตนเองทุกบรรทัด",
+      "ง. ถูกเซตเฉพาะตอนเปิดเครื่องครั้งแรกเท่านั้น"
+    ],
+    answer: 0,
+    explanation: "ตามหน้า 14: Modified (Dirty) bit ถูกเซตโดยฮาร์ดแวร์เมื่อมีคำสั่ง store instruction (ทั้งใน TLB และ PTE) และสามารถถูกรีเซ็ตโดย OS kernel เมื่อการเปลี่ยนแปลงถูกเขียนลงดิสก์เรียบร้อยแล้ว (flushed to disk)"
+  },
+  {
+    id: 30,
+    chapter: 8,
+    q: "30. หากระบบฮาร์ดแวร์บางรุ่นไม่มีฮาร์ดแวร์สำหรับจัดการ Modified (Dirty) bit หรือ Use bit มาให้โดยตรง ระบบปฏิบัติการสามารถจำลอง (Emulate) บิตเหล่านี้ได้อย่างไร (หน้า 9)?",
+    options: [
+      "ก. ไม่สามารถทำได้เลย ต้องเปลี่ยนซีพียูใหม่อย่างเดียว",
+      "ข. ใช้การตั้งสิทธิ์ใน Page Table ให้เกิด Kernel Trap เมื่อมีการอ่านหรือเขียน (เช่น ตั้งเป็น Read-only เพื่อดักจับการเขียนแล้วบันทึกว่า Dirty)",
+      "ค. เขียนทุกหน้าลงฮาร์ดดิสก์ทุกๆ 1 นาโนวินาที",
+      "ง. ปิดระบบ Virtual Memory ทิ้งทั้งหมด"
+    ],
+    answer: 1,
+    explanation: "ในหน้า 9 หัวข้อ 'Hardware address translation is a power tool: Kernel trap on read/write to selected addresses' ระบุว่าใช้กลไกการเกิด Trap นี้ทำ Modified bit emulation (ดักตอนเขียนครั้งแรก) และ Use bit emulation (ดักตอนเข้าถึงครั้งแรก) ได้"
+  },
+  {
+    id: 31,
+    chapter: 8,
+    q: "31. ในกรณีที่ Physical Page หนึ่งถูกแชร์ใช้งานร่วมกันโดยหลายโปรเซส (มีหลาย Page Table Entries ชี้มายังเฟรมเดียวกัน) เราจะถือว่า Physical Page นั้นมีสถานะเป็น Modified (Dirty) เมื่อใด (หน้า 17)?",
+    options: [
+      "ก. เมื่อทุกๆ Page Table Entry ที่ชี้มาต้องมีค่าเป็น Modified ครบทุกตัวเท่านั้น",
+      "ข. เมื่อมี Page Table Entry 'ตัวใดตัวหนึ่ง (any)' ที่ชี้มายังเฟรมนั้นมีค่าเป็น Modified",
+      "ค. หน้าที่มีการแชร์ร่วมกันจะไม่สามารถถูกแก้ไขได้เลยในทุกกรณี",
+      "ง. เมื่อไม่มีโปรเซสใดอ้างอิงหน้านั้นเลย"
+    ],
+    answer: 1,
+    explanation: "ในหน้า 17 ระบุว่า Physical page is Modified if ANY page table entry that points to it is modified และ Recently used if ANY page table entry that points to it is recently used"
+  },
+  {
+    id: 32,
+    chapter: 8,
+    q: "32. ในสถาปัตยกรรม MIPS มีการเก็บ Dirty/Use bits ไว้ในโครงสร้างข้อมูลที่เรียกว่า 'Core map' (หน้า 17) อยากทราบว่า Core map คืออะไร?",
+    options: [
+      "ก. ตารางที่แมปข้อมูลของ Physical page frames ทั้งหมดในระบบ",
+      "ข. แผนผังการเดินสายไฟภายในแกนของซีพียู",
+      "ค. ตารางเก็บรายชื่อไฟล์ในโฟลเดอร์ระบบปฏิบัติการ",
+      "ง. รีจิสเตอร์เก็บค่า Base และ Bound"
+    ],
+    answer: 0,
+    explanation: "ในหน้า 17 ระบุนิยามไว้ชัดเจนว่า Core map: map of physical page frames ซึ่งช่วยให้ติดตามสถานะของแต่ละเฟรมกายภาพได้โดยตรง"
+  },
+  {
+    id: 33,
+    chapter: 8,
+    q: "33. การทำงานของ Memory-mapped files (หน้า 18–19) แตกต่างจากการใช้ Explicit read/write system calls อย่างไร?",
+    options: [
+      "ก. Memory-mapped files ต้องสั่งก๊อปปี้ข้อมูลผ่านบัฟเฟอร์ 3 ต่อ ส่วน read/write ไม่ต้องก๊อปปี้เลย",
+      "ข. Memory-mapped files เปิดไฟล์เป็นเซกเมนต์หน่วยความจำ ให้โปรแกรมใช้คำสั่ง load/store ได้โดยตรง และใช้กลไก Page fault ดึงข้อมูลจากดิสก์เข้าสู่ Page frame โดยตรง (Zero-copy I/O)",
+      "ค. Memory-mapped files ใช้ได้กับไฟล์ขนาดไม่เกิน 4 KB เท่านั้น",
+      "ง. Memory-mapped files ไม่สามารถใช้สื่อสารระหว่างโปรเซส (IPC) ได้"
+    ],
+    answer: 1,
+    explanation: "ตามหน้า 18–19 Memory-mapped files เปิดไฟล์เป็น memory segment ให้ใช้คำสั่ง load/store ได้ตรงๆ เกิด Zero-copy I/O (ดึงจากดิสก์เข้า page frame โดยตรง), ทำ Pipelining ได้ และใช้ทำ IPC ได้"
+  },
+  {
+    id: 34,
+    chapter: 8,
+    q: "34. เหตุใดในแคชแบบ Direct Mapped Cache จึงไม่มีประเด็นเรื่องการเลือกนโยบายการแทนที่ (Cache Replacement Policy - หน้า 20)?",
+    options: [
+      "ก. เพราะ Direct Mapped Cache มีขนาดเป็นอนันต์จึงไม่เคยเต็ม",
+      "ข. เพราะแต่ละตำแหน่งหน่วยความจำถูกกำหนดช่องในแคชไว้ตายตัวเพียงช่องเดียว เมื่อเกิด Miss จึงต้องแทนที่ช่องนั้นทันทีโดยไม่มีตัวเลือกอื่น",
+      "ค. เพราะ Direct Mapped Cache ห้ามเขียนข้อมูลทับโดยเด็ดขาด",
+      "ง. เพราะ Direct Mapped Cache ใช้เฉพาะอัลกอริทึม MIN เท่านั้น"
+    ],
+    answer: 1,
+    explanation: "ในหน้า 20 ระบุว่า 'In direct mapped caches, not an issue!' เพราะแต่ละที่อยู่แมปเข้าได้เพียงช่องเดียวตายตัว จึงไม่ต้องตัดสินใจเลือกเปรียบเทียบว่าจะไล่ช่องไหนออก"
+  },
+  {
+    id: 35,
+    chapter: 8,
+    q: "35. กรณีเลวร้ายที่สุด (Worst case) ของอัลกอริทึมการแทนที่แบบ FIFO และ LRU (หน้า 22 และ 24) เช่น ลำดับ A B C D E A B C D E... บนแคชขนาด 4 ช่อง คือสถานการณ์แบบใด?",
+    options: [
+      "ก. เมื่อโปรแกรมอ้างอิงเฉพาะหน้า A เพียงหน้าเดียวซ้ำๆ",
+      "ข. เมื่อโปรแกรมเดินวนอ่านข้อมูลเรียงลำดับ (Sequential scan / Stride) ที่มีขนาดใหญ่กว่าขนาดของแคช ทำให้เกิด Miss 100% ทุกครั้ง",
+      "ค. เมื่อโปรแกรมใช้หน่วยความจำน้อยกว่าครึ่งหนึ่งของขนาดแคช",
+      "ง. เมื่อไม่มีการเกิด Page fault เลยตลอดการทำงาน"
+    ],
+    answer: 1,
+    explanation: "ในหน้า 22 และ 24 แสดงให้เห็นว่าเมื่อโปรแกรมทำการสแกนวนลูป (Sequential scan / stride) 5 หน้า (A B C D E) บนแคช 4 ช่อง ทั้ง FIFO และ LRU จะไล่หน้าที่จะต้องใช้ในก้าวถัดไปออกพอดี ทำให้เกิด Miss ทุกครั้ง (0% Hit)"
+  },
+  {
+    id: 36,
+    chapter: 8,
+    q: "36. อัลกอริทึม MIN (หรือ Optimal page replacement ในหน้า 23) มีหลักการเลือกแทนที่หน้าอย่างไร?",
+    options: [
+      "ก. เลือกแทนที่หน้าที่เข้ามาอยู่ในแคชนานที่สุด",
+      "ข. เลือกแทนที่หน้าที่ไม่ได้ถูกใช้งานมานานที่สุดในอดีต",
+      "ค. เลือกแทนที่หน้าที่ 'จะไม่ถูกเรียกใช้งานอีกเป็นเวลานานที่สุดในอนาคต (longest time into the future)'",
+      "ง. เลือกแทนที่หน้าที่มีขนาดไบต์เล็กที่สุด"
+    ],
+    answer: 2,
+    explanation: "ในหน้า 23 ระบุว่า MIN: Replace the cache entry that will not be used for the longest time into the future ซึ่งเป็นวิธีที่ให้จำนวน Miss น้อยที่สุดเท่าที่เป็นไปได้ (Optimal)"
+  },
+  {
+    id: 37,
+    chapter: 8,
+    q: "37. เหตุใดระบบปฏิบัติการจึงนิยมใช้ LRU (Least Recently Used) ในการตัดสินใจเลือกหน้าที่จะแทนที่ (หน้า 23 และ 27)?",
+    options: [
+      "ก. เพราะ LRU สามารถล่วงรู้อนาคตได้ 100% เหมือน MIN",
+      "ข. เพราะสำหรับโปรแกรมทั่วไปที่มีสมบัติ Spatial และ Temporal locality การดูประวัติการใช้งานล่าสุดในอดีต (LRU) เป็นการประมาณค่าของ MIN ได้อย่างแม่นยำ",
+      "ค. เพราะ LRU ไม่ต้องอาศัยข้อมูลประวัติการใช้งานใดๆ เลย",
+      "ง. เพราะ LRU รับประกันว่าจะเกิด Belady's Anomaly เสมอ"
+    ],
+    answer: 1,
+    explanation: "ในหน้า 23 และ 27 สรุปไว้ว่า LRU เป็นการประมาณค่าของ MIN (Approximation of MIN) ที่ทำงานได้ดีมากสำหรับโปรแกรมที่มีสมบัติ Spatial และ Temporal locality (ใช้สิ่งที่เพิ่งเกิดในอดีตทำนายอนาคตอันใกล้)"
+  },
+  {
+    id: 38,
+    chapter: 8,
+    q: "38. จากตารางเปรียบเทียบในหน้า 25 สำหรับลำดับการอ้างอิงที่มี Locality: A B A C B D A D E D A E B A C (รวม 15 ครั้ง) บนแคชขนาด 4 ช่อง ข้อใดเรียงลำดับอัลกอริทึมจากจำนวนครั้งที่เกิด Hit ('+') มากที่สุดไปน้อยที่สุดได้ถูกต้อง?",
+    options: [
+      "ก. FIFO (8 Hits) > LRU (7 Hits) > MIN (5 Hits)",
+      "ข. MIN (8 Hits) > LRU (7 Hits) > FIFO (5 Hits)",
+      "ค. LRU (10 Hits) > MIN (8 Hits) > FIFO (2 Hits)",
+      "ง. ทั้ง MIN, LRU และ FIFO ได้จำนวน Hit เท่ากันคือ 5 ครั้ง"
+    ],
+    answer: 1,
+    explanation: "จากตารางในหน้า 25 เมื่อนับเครื่องหมาย '+' (Hit): MIN ได้ 8 ครั้ง (ดีที่สุด), LRU ได้ 7 ครั้ง (ใกล้เคียง MIN มาก) และ FIFO ได้เพียง 5 ครั้ง"
+  },
+  {
+    id: 39,
+    chapter: 8,
+    q: "39. ปรากฏการณ์ 'Belady's Anomaly' ที่แสดงในหน้า 26 คืออะไร?",
+    options: [
+      "ก. การที่อัลกอริทึม MIN ทำงานช้ากว่าอัลกอริทึมแบบสุ่ม",
+      "ข. การที่เมื่อใช้อัลกอริทึม FIFO แล้วเพิ่มจำนวนช่องแคช (เช่น จาก 3 ช่อง เป็น 4 ช่อง กับลำดับ A B C D A B E A B C D E) แต่กลับทำให้เกิด Cache Miss (Page Fault) เพิ่มมากขึ้นกว่าเดิม",
+      "ค. การที่ TLB สามารถเก็บข้อมูลได้มากกว่าฮาร์ดดิสก์",
+      "ง. การที่โปรแกรมหยุดทำงานเมื่อมีหน่วยความจำว่างมากเกินไป"
+    ],
+    answer: 1,
+    explanation: "ในหน้า 26 แสดงตาราง FIFO กับลำดับ A B C D A B E A B C D E: เมื่อมี 3 ช่อง เกิด Hit 3 ครั้ง (Miss 9 ครั้ง) แต่พอเพิ่มเป็น 4 ช่อง กลับเกิด Hit เหลือเพียง 2 ครั้ง (Miss เพิ่มเป็น 10 ครั้ง) เรียกความผิดปกตินี้ว่า Belady's Anomaly"
+  },
+  {
+    id: 40,
+    chapter: 8,
+    q: "40. ตามหน้าสรุปส่งท้าย (Recap - หน้า 27) เนื่องจากอัลกอริทึม LRU แท้ๆ มีต้นทุนในการติดตามลำดับทุกครั้งสูง ระบบปฏิบัติการจริงจึงใช้อัลกอริทึมใดเพื่อประมาณค่าของ LRU อีกต่อหนึ่ง?",
+    options: [
+      "ก. อัลกอริทึม FIFO แบบย้อนกลับ",
+      "ข. อัลกอริทึม Clock / Nth Chance ซึ่งจัดกลุ่มหน้าเป็นเซตของหน้าที่ไม่ได้เพิ่งถูกใช้ (Not recently used) โดยอาศัย Use bit",
+      "ค. อัลกอริทึม Base and Bounds",
+      "ง. อัลกอริทึม Direct Mapped Paging"
+    ],
+    answer: 1,
+    explanation: "ในหน้า 27 ระบุชัดเจนว่า: 'Clock/Nth Chance is an approximation of LRU – Bin pages into sets of not recently used' ซึ่งเป็นวิธีมาตรฐานที่ OS จริงใช้จำลองพฤติกรรมของ LRU อย่างมีประสิทธิภาพ"
+  }
+];
+
+let currentTab = 'overview';
+let ch7Filter = 'all';
+let ch7Search = '';
+let ch8Filter = 'all';
+let ch8Search = '';
+let quizFilter = 'all';
+let showAllAnswers = false;
+let userAnswers = {};
+
+function switchTab(tabId) {
+  currentTab = tabId;
+  document.querySelectorAll('.tab-section').forEach(sec => {
+    sec.classList.add('hidden');
+  });
+  const target = document.getElementById('sec-' + tabId);
+  if (target) target.classList.remove('hidden');
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    if (btn.getAttribute('data-tab') === tabId) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderCh7Slides() {
+  const container = document.getElementById('ch7-grid');
+  if (!container) return;
+  const q = ch7Search.trim().toLowerCase();
+  const filtered = ch7Slides.filter(s => {
+    const matchGroup = (ch7Filter === 'all') || (s.group === ch7Filter);
+    const matchSearch = !q ||
+      s.title.toLowerCase().includes(q) ||
+      s.summary.toLowerCase().includes(q) ||
+      s.keyPoint.toLowerCase().includes(q) ||
+      ('หน้า ' + s.page).includes(q) ||
+      String(s.page) === q;
+    return matchGroup && matchSearch;
+  });
+
+  const countEl = document.getElementById('ch7-count');
+  if (countEl) countEl.textContent = `แสดง ${filtered.length} จาก 36 หน้า`;
+
+  container.innerHTML = filtered.map(s => `
+    <div class="slide-card p-5 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <span class="badge-page">บทที่ 7 • หน้า ${s.page} / 36</span>
+          <span class="text-xs px-2.5 py-0.5 rounded bg-slate-800 text-indigo-300 border border-slate-700">${getGroupLabelCh7(s.group)}</span>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2">${s.title}</h3>
+        <p class="text-sm text-slate-300 mb-4">${s.summary}</p>
+      </div>
+      <div>
+        <div class="diagram-box mb-3 whitespace-pre-wrap">${s.visual}</div>
+        <div class="text-xs bg-indigo-950/50 border border-indigo-800/50 rounded-lg p-2.5 text-indigo-200">
+          <strong class="text-indigo-400">💡 จุดสำคัญ:</strong> ${s.keyPoint}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function getGroupLabelCh7(g) {
+  const map = {
+    intro: 'แนวคิด & เป้าหมาย (หน้า 1-5)',
+    basebound: 'Base & Bounds (หน้า 6-9)',
+    segmentation: 'Segmentation (หน้า 10-16)',
+    paging: 'Paging & Sparse (หน้า 17-23)',
+    multilevel: 'Multilevel Translation (หน้า 24-30)',
+    tlb: 'TLB & ประโยชน์ใช้งาน (หน้า 31-36)'
+  };
+  return map[g] || g;
+}
+
+function renderCh8Slides() {
+  const container = document.getElementById('ch8-grid');
+  if (!container) return;
+  const q = ch8Search.trim().toLowerCase();
+  const filtered = ch8Slides.filter(s => {
+    const matchGroup = (ch8Filter === 'all') || (s.group === ch8Filter);
+    const matchSearch = !q ||
+      s.title.toLowerCase().includes(q) ||
+      s.summary.toLowerCase().includes(q) ||
+      s.keyPoint.toLowerCase().includes(q) ||
+      ('หน้า ' + s.page).includes(q) ||
+      String(s.page) === q;
+    return matchGroup && matchSearch;
+  });
+
+  const countEl = document.getElementById('ch8-count');
+  if (countEl) countEl.textContent = `แสดง ${filtered.length} จาก 27 หน้า`;
+
+  container.innerHTML = filtered.map(s => `
+    <div class="slide-card p-5 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <span class="badge-page badge-ch8">บทที่ 8 • หน้า ${s.page} / 27</span>
+          <span class="text-xs px-2.5 py-0.5 rounded bg-slate-800 text-emerald-300 border border-slate-700">${getGroupLabelCh8(s.group)}</span>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2">${s.title}</h3>
+        <p class="text-sm text-slate-300 mb-4">${s.summary}</p>
+      </div>
+      <div>
+        <div class="diagram-box mb-3 whitespace-pre-wrap">${s.visual}</div>
+        <div class="text-xs bg-emerald-950/50 border border-emerald-800/50 rounded-lg p-2.5 text-emerald-200">
+          <strong class="text-emerald-400">💡 จุดสำคัญ:</strong> ${s.keyPoint}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function getGroupLabelCh8(g) {
+  const map = {
+    cache: 'แนวคิด Cache & Hierarchy (หน้า 1-7)',
+    demand: 'Demand Paging & Dirty/Use Bits (หน้า 8-17)',
+    mmap: 'Memory-Mapped Files (หน้า 18-19)',
+    replacement: 'Page Replacement: FIFO, MIN, LRU, Belady (หน้า 20-27)'
+  };
+  return map[g] || g;
+}
+
+function runSegSim() {
+  const segSelect = document.getElementById('sim-seg-select');
+  const offsetInput = document.getElementById('sim-seg-offset');
+  const resultBox = document.getElementById('sim-seg-result');
+  if (!segSelect || !offsetInput || !resultBox) return;
+
+  const segNum = parseInt(segSelect.value, 10);
+  let offsetVal = parseInt(offsetInput.value, 16);
+  if (isNaN(offsetVal) || offsetVal < 0) offsetVal = 0;
+
+  const segTable = {
+    0: { name: 'Code Segment (Seg 0)', start: 0x4000, length: 0x0700, perm: 'Read / Execute', valid: true },
+    1: { name: 'Data Segment (Seg 1)', start: 0x0000, length: 0x0500, perm: 'Read / Write', valid: true },
+    2: { name: 'Heap Segment (Seg 2)', start: null, length: 0x0000, perm: 'Unallocated (-)', valid: false },
+    3: { name: 'Stack Segment (Seg 3)', start: 0x2000, length: 0x1000, perm: 'Read / Write', valid: true }
+  };
+
+  const entry = segTable[segNum];
+  const vAddr = ((segNum << 12) | (offsetVal & 0xFFF));
+  const vAddrHex = '0x' + vAddr.toString(16).toUpperCase().padStart(4, '0');
+  const offsetHex = '0x' + offsetVal.toString(16).toUpperCase().padStart(3, '0');
+
+  if (!entry.valid) {
+    resultBox.innerHTML = `
+      <div class="p-4 rounded-lg bg-rose-950/60 border border-rose-700 text-rose-200">
+        <div class="font-bold text-rose-400 mb-1">⚠️ เกิด Exception! (Segment Fault)</div>
+        <div class="text-sm">Virtual Address <code>${vAddrHex}</code> (Segment ${segNum}, Offset ${offsetHex}) อ้างอิงไปยัง <strong>${entry.name}</strong> ซึ่งยังไม่ได้จัดสรรพื้นที่ในตาราง (start = -, length = -)</div>
+      </div>
+    `;
+    return;
+  }
+
+  if (offsetVal >= entry.length) {
+    resultBox.innerHTML = `
+      <div class="p-4 rounded-lg bg-rose-950/60 border border-rose-700 text-rose-200">
+        <div class="font-bold text-rose-400 mb-1">⚠️ เกิด Bounds Exception! (Offset เกินขนาด Length)</div>
+        <div class="text-sm">Virtual Address <code>${vAddrHex}</code> ➔ Offset <code>${offsetHex}</code> มีค่ามากกว่าหรือเท่ากับความยาวเซกเมนต์ (Length = <code>0x${entry.length.toString(16).toUpperCase()}</code>) ฮาร์ดแวร์จึงโยน Exception ทันที!</div>
+      </div>
+    `;
+    return;
+  }
+
+  const physAddr = entry.start + offsetVal;
+  const physHex = '0x' + physAddr.toString(16).toUpperCase().padStart(4, '0');
+  const startHex = '0x' + entry.start.toString(16).toUpperCase().padStart(4, '0');
+
+  resultBox.innerHTML = `
+    <div class="p-4 rounded-lg bg-emerald-950/60 border border-emerald-700 text-emerald-100">
+      <div class="font-bold text-emerald-400 mb-1">✅ แปลงที่อยู่สำเร็จ! Physical Address = <span class="text-xl font-mono text-white">${physHex}</span></div>
+      <div class="text-sm space-y-1">
+        <div>• <strong>Virtual Address (14-bit):</strong> <code>${vAddrHex}</code> (2-bit Seg = <code>${segNum}</code> [${entry.name}], 12-bit Offset = <code>${offsetHex}</code>)</div>
+        <div>• <strong>ตรวจสอบขอบเขต:</strong> Offset <code>${offsetHex}</code> &lt; Length <code>0x${entry.length.toString(16).toUpperCase()}</code> (ผ่าน ✅ | สิทธิ์: ${entry.perm})</div>
+        <div>• <strong>คำนวณ Physical Address:</strong> Start (<code>${startHex}</code>) + Offset (<code>${offsetHex}</code>) = <strong><code>${physHex}</code></strong></div>
+      </div>
+    </div>
+  `;
+}
+
+function runPageSim(letterIndex) {
+  const letters = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+  const pageTable = [4, 3, 1];
+  const vPage = Math.floor(letterIndex / 4);
+  const offset = letterIndex % 4;
+  const frame = pageTable[vPage];
+  const physAddr = frame * 4 + offset;
+  const ch = letters[letterIndex];
+
+  document.querySelectorAll('.letter-btn').forEach((btn, idx) => {
+    if (idx === letterIndex) {
+      btn.classList.add('ring-2', 'ring-cyan-400', 'bg-cyan-600', 'text-white');
+      btn.classList.remove('bg-slate-800');
+    } else {
+      btn.classList.remove('ring-2', 'ring-cyan-400', 'bg-cyan-600', 'text-white');
+      btn.classList.add('bg-slate-800');
+    }
+  });
+
+  const out = document.getElementById('sim-page-result');
+  if (out) {
+    out.innerHTML = `
+      <div class="p-4 rounded-lg bg-cyan-950/60 border border-cyan-700 text-cyan-100">
+        <div class="font-bold text-cyan-300 text-base mb-2">🔍 ผลการแปลงที่อยู่ของข้อมูล '${ch}' (อ้างอิงบทที่ 7 หน้า 21)</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+          <div class="bg-slate-900/90 p-3 rounded border border-slate-700">
+            <div class="text-xs text-slate-400">1. มุมมองโปรเซส (Virtual)</div>
+            <div class="font-mono font-bold text-white mt-1">Virtual Addr = ${letterIndex}</div>
+            <div class="text-xs text-cyan-300 mt-0.5">Virtual Page # = ${vPage}, Offset = ${offset}</div>
+          </div>
+          <div class="bg-slate-900/90 p-3 rounded border border-slate-700">
+            <div class="text-xs text-slate-400">2. เปิดตาราง Page Table [${vPage}]</div>
+            <div class="font-mono font-bold text-amber-300 mt-1">Page ${vPage} ➔ Frame ${frame}</div>
+            <div class="text-xs text-slate-300 mt-0.5">ตารางเก็บค่า [4, 3, 1]</div>
+          </div>
+          <div class="bg-slate-900/90 p-3 rounded border border-slate-700">
+            <div class="text-xs text-slate-400">3. ตำแหน่งจริงใน Physical RAM</div>
+            <div class="font-mono font-bold text-emerald-400 mt-1">Frame ${frame}, Offset ${offset} (Slot ${physAddr})</div>
+            <div class="text-xs text-emerald-200 mt-0.5">ได้ตัวอักษร '${ch}' ถูกต้อง!</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function setSimPreset(refStr, slots) {
+  const refInput = document.getElementById('sim-ref-input');
+  const slotSelect = document.getElementById('sim-slot-select');
+  if (refInput) refInput.value = refStr;
+  if (slotSelect) slotSelect.value = String(slots);
+  runReplacementSim();
+}
+
+function simulatePolicy(refs, numSlots, policy) {
+  let frames = new Array(numSlots).fill(null);
+  let fifoOrder = [];
+  let lastUsed = new Array(numSlots).fill(-1);
+  let steps = [];
+  let hits = 0;
+  let misses = 0;
+
+  for (let t = 0; t < refs.length; t++) {
+    const page = refs[t];
+    const existingIdx = frames.indexOf(page);
+    if (existingIdx !== -1) {
+      hits++;
+      lastUsed[existingIdx] = t;
+      steps.push({
+        step: t + 1,
+        ref: page,
+        hit: true,
+        replaced: null,
+        slotChanged: existingIdx,
+        frames: [...frames]
+      });
+    } else {
+      misses++;
+      const emptyIdx = frames.indexOf(null);
+      let targetIdx = -1;
+      let replacedPage = null;
+
+      if (emptyIdx !== -1) {
+        targetIdx = emptyIdx;
+        fifoOrder.push(targetIdx);
+      } else {
+        if (policy === 'FIFO') {
+          targetIdx = fifoOrder.shift();
+          fifoOrder.push(targetIdx);
+        } else if (policy === 'LRU') {
+          let minTime = Infinity;
+          for (let i = 0; i < numSlots; i++) {
+            if (lastUsed[i] < minTime) {
+              minTime = lastUsed[i];
+              targetIdx = i;
+            }
+          }
+        } else if (policy === 'MIN') {
+          let farthestNext = -1;
+          for (let i = 0; i < numSlots; i++) {
+            const p = frames[i];
+            let nextUse = Infinity;
+            for (let future = t + 1; future < refs.length; future++) {
+              if (refs[future] === p) {
+                nextUse = future;
+                break;
+              }
+            }
+            if (nextUse > farthestNext) {
+              farthestNext = nextUse;
+              targetIdx = i;
+            }
+          }
+        }
+        replacedPage = frames[targetIdx];
+      }
+
+      frames[targetIdx] = page;
+      lastUsed[targetIdx] = t;
+      steps.push({
+        step: t + 1,
+        ref: page,
+        hit: false,
+        replaced: replacedPage,
+        slotChanged: targetIdx,
+        frames: [...frames]
+      });
+    }
+  }
+  return { steps, hits, misses };
+}
+
+function runReplacementSim() {
+  const refInput = document.getElementById('sim-ref-input');
+  const slotSelect = document.getElementById('sim-slot-select');
+  const outContainer = document.getElementById('sim-rep-output');
+  if (!refInput || !slotSelect || !outContainer) return;
+
+  const refs = refInput.value.trim().toUpperCase().split(/[\s,]+/).filter(Boolean);
+  const numSlots = parseInt(slotSelect.value, 10) || 4;
+
+  if (refs.length === 0) {
+    outContainer.innerHTML = `<div class="text-amber-400 text-sm">กรุณากรอกลำดับการอ้างอิงหน้า (เช่น A B C D A B E)</div>`;
+    return;
+  }
+
+  const policies = [
+    { code: 'FIFO', name: 'FIFO (First-In, First-Out)', color: 'amber' },
+    { code: 'LRU', name: 'LRU (Least Recently Used)', color: 'cyan' },
+    { code: 'MIN', name: 'MIN / Optimal (รู้อนาคต)', color: 'emerald' }
+  ];
+
+  outContainer.innerHTML = policies.map(pol => {
+    const res = simulatePolicy(refs, numSlots, pol.code);
+    const hitRate = ((res.hits / refs.length) * 100).toFixed(1);
+
+    let headerCells = refs.map((r, i) => `<th class="px-2 py-1.5 border border-slate-700 bg-slate-800 text-center font-mono text-xs">${r}<div class="text-[10px] text-slate-400">#${i+1}</div></th>`).join('');
+
+    let slotRows = '';
+    for (let s = 0; s < numSlots; s++) {
+      let cells = res.steps.map(st => {
+        const val = st.frames[s] || '-';
+        const isChanged = (!st.hit && st.slotChanged === s);
+        const isHitSlot = (st.hit && st.slotChanged === s);
+        let bg = 'bg-slate-900 text-slate-300';
+        if (isChanged) bg = 'bg-indigo-950/90 text-indigo-200 font-bold';
+        if (isHitSlot) bg = 'bg-emerald-950/90 text-emerald-300 font-bold';
+        return `<td class="px-2 py-1.5 border border-slate-800 text-center font-mono text-xs ${bg}">${val}</td>`;
+      }).join('');
+      slotRows += `<tr><td class="px-2.5 py-1.5 border border-slate-700 bg-slate-800/80 font-semibold text-xs whitespace-nowrap">Slot ${s+1}</td>${cells}</tr>`;
+    }
+
+    let statusCells = res.steps.map(st => {
+      if (st.hit) {
+        return `<td class="px-2 py-1 border border-slate-800 text-center text-xs font-bold text-emerald-400 bg-emerald-950/40">+ (Hit)</td>`;
+      } else {
+        return `<td class="px-2 py-1 border border-slate-800 text-center text-[11px] text-rose-400 bg-rose-950/30">Miss${st.replaced ? `<br><span class="text-[10px] text-slate-400">แทน ${st.replaced}</span>` : ''}</td>`;
+      }
+    }).join('');
+
+    return `
+      <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-4 mb-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h4 class="font-bold text-white text-base">${pol.name} (${numSlots} Slots)</h4>
+          <div class="flex items-center gap-3 text-xs">
+            <span class="px-2.5 py-1 rounded bg-emerald-950 text-emerald-300 border border-emerald-700">✅ Hits (+): <strong>${res.hits}</strong></span>
+            <span class="px-2.5 py-1 rounded bg-rose-950 text-rose-300 border border-rose-700">❌ Misses: <strong>${res.misses}</strong></span>
+            <span class="px-2.5 py-1 rounded bg-indigo-950 text-indigo-200 border border-indigo-700">📊 Hit Rate: <strong>${hitRate}%</strong></span>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr>
+                <th class="px-2.5 py-1.5 border border-slate-700 bg-slate-800 text-left text-xs">Reference</th>
+                ${headerCells}
+              </tr>
+            </thead>
+            <tbody>
+              ${slotRows}
+              <tr>
+                <td class="px-2.5 py-1 border border-slate-700 bg-slate-800 text-xs font-semibold">ผลลัพธ์</td>
+                ${statusCells}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderQuiz() {
+  const container = document.getElementById('quiz-container');
+  if (!container) return;
+
+  const filtered = quizQuestions.filter(item => {
+    if (quizFilter === 'all') return true;
+    return String(item.chapter) === String(quizFilter);
+  });
+
+  updateQuizScore();
+
+  container.innerHTML = filtered.map(item => {
+    const answered = userAnswers[item.id];
+    const hasAnswered = answered !== undefined;
+    const isRevealed = hasAnswered || showAllAnswers;
+
+    const optionsHtml = item.options.map((opt, idx) => {
+      let cls = 'option-btn';
+      if (isRevealed) {
+        if (idx === item.answer) {
+          cls += ' correct';
+        } else if (hasAnswered && answered === idx && answered !== item.answer) {
+          cls += ' wrong';
+        }
+      }
+      return `
+        <button type="button" class="${cls}" onclick="selectQuizOption(${item.id}, ${idx})">
+          <div class="flex items-center justify-between gap-2">
+            <span>${opt}</span>
+            ${isRevealed && idx === item.answer ? '<span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-800 text-emerald-100 shrink-0">✓ เฉลยที่ถูก</span>' : ''}
+            ${hasAnswered && answered === idx && answered !== item.answer ? '<span class="text-xs font-bold px-2 py-0.5 rounded bg-rose-800 text-rose-100 shrink-0">✗ ที่เลือก</span>' : ''}
+          </div>
+        </button>
+      `;
+    }).join('');
+
+    return `
+      <div class="slide-card p-5">
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <span class="badge-page ${item.chapter === 8 ? 'badge-ch8' : ''}">ข้อที่ ${item.id} / 40 • บทที่ ${item.chapter} (${item.chapter === 7 ? 'Address Translation' : 'Virtual Memory'})</span>
+          ${hasAnswered ? (answered === item.answer ? '<span class="text-xs font-bold text-emerald-400">✅ ตอบถูก</span>' : '<span class="text-xs font-bold text-rose-400">❌ ตอบผิด</span>') : '<span class="text-xs text-slate-400">ยังไม่ได้เลือกคำตอบ</span>'}
+        </div>
+        <h4 class="text-base font-bold text-white mb-3">${item.q}</h4>
+        <div class="space-y-2 mb-3">
+          ${optionsHtml}
+        </div>
+        ${isRevealed ? `
+          <div class="mt-3 p-3.5 rounded-lg bg-slate-900/90 border border-indigo-500/40 text-sm text-slate-200">
+            <div class="font-bold text-indigo-300 mb-1">📖 คำอธิบายเฉลยละเอียด:</div>
+            <div>${item.explanation}</div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function selectQuizOption(questionId, optionIndex) {
+  userAnswers[questionId] = optionIndex;
+  renderQuiz();
+}
+
+function toggleAllQuizAnswers() {
+  showAllAnswers = !showAllAnswers;
+  const btn = document.getElementById('btn-toggle-answers');
+  if (btn) {
+    btn.textContent = showAllAnswers ? '🙈 ซ่อนเฉลยที่ยังไม่ได้ทำ' : '👁️ แสดงเฉลยพร้อมคำอธิบายครบทั้ง 40 ข้อ';
+  }
+  renderQuiz();
+}
+
+function resetQuiz() {
+  userAnswers = {};
+  showAllAnswers = false;
+  const btn = document.getElementById('btn-toggle-answers');
+  if (btn) {
+    btn.textContent = '👁️ แสดงเฉลยพร้อมคำอธิบายครบทั้ง 40 ข้อ';
+  }
+  renderQuiz();
+}
+
+function updateQuizScore() {
+  const totalAnswered = Object.keys(userAnswers).length;
+  let correctCount = 0;
+  quizQuestions.forEach(q => {
+    if (userAnswers[q.id] === q.answer) correctCount++;
+  });
+  const scoreEl = document.getElementById('quiz-score-banner');
+  if (scoreEl) {
+    scoreEl.textContent = `ทำไปแล้ว ${totalAnswered} / 40 ข้อ | คะแนนที่ได้: ${correctCount} / 40 คะแนน`;
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  renderCh7Slides();
+  renderCh8Slides();
+  runSegSim();
+  runPageSim(5);
+  runReplacementSim();
+  renderQuiz();
+
+  const ch7SearchEl = document.getElementById('ch7-search');
+  if (ch7SearchEl) {
+    ch7SearchEl.addEventListener('input', (e) => {
+      ch7Search = e.target.value;
+      renderCh7Slides();
+    });
+  }
+  document.querySelectorAll('.ch7-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      ch7Filter = btn.getAttribute('data-filter');
+      document.querySelectorAll('.ch7-filter-btn').forEach(b => b.classList.remove('bg-indigo-600', 'text-white'));
+      btn.classList.add('bg-indigo-600', 'text-white');
+      renderCh7Slides();
+    });
+  });
+
+  const ch8SearchEl = document.getElementById('ch8-search');
+  if (ch8SearchEl) {
+    ch8SearchEl.addEventListener('input', (e) => {
+      ch8Search = e.target.value;
+      renderCh8Slides();
+    });
+  }
+  document.querySelectorAll('.ch8-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      ch8Filter = btn.getAttribute('data-filter');
+      document.querySelectorAll('.ch8-filter-btn').forEach(b => b.classList.remove('bg-emerald-600', 'text-white'));
+      btn.classList.add('bg-emerald-600', 'text-white');
+      renderCh8Slides();
+    });
+  });
+
+  document.querySelectorAll('.quiz-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      quizFilter = btn.getAttribute('data-qfilter');
+      document.querySelectorAll('.quiz-filter-btn').forEach(b => b.classList.remove('bg-indigo-600', 'text-white'));
+      btn.classList.add('bg-indigo-600', 'text-white');
+      renderQuiz();
+    });
+  });
+});
+
+  </script>
+</body>
+</html>
